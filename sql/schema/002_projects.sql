@@ -12,7 +12,6 @@ CREATE INDEX idx_projects_created_by ON projects(created_by);
 CREATE INDEX idx_projects_status ON projects(status);
 
 -- +goose Down
-DROP INDEX IF EXISTS idx_projects_user_status;
 DROP INDEX IF EXISTS idx_projects_status;
 DROP INDEX IF EXISTS idx_projects_created_by;
 DROP TABLE IF EXISTS projects;

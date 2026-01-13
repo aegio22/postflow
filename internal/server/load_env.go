@@ -10,7 +10,7 @@ import (
 type Env struct {
 	DB_URL     string
 	JWT_SECRET string
-	PORT       string
+	BASE_URL   string
 }
 
 func LoadEnv() (*Env, error) {
@@ -19,9 +19,10 @@ func LoadEnv() (*Env, error) {
 	if jwtSecret == "" {
 		return nil, errors.New("no jwt secret found")
 	}
-	port := os.Getenv("PORT")
-	if port == "" {
-		return nil, errors.New("port env missing")
+
+	baseURL := os.Getenv("BASE_URL")
+	if baseURL == "" {
+		return nil, errors.New("baseurl env missing")
 	}
 
 	db := os.Getenv("DATABASE_URL")
@@ -30,8 +31,8 @@ func LoadEnv() (*Env, error) {
 	}
 
 	return &Env{
-		PORT:   port,
-		DB_URL: db,
+		BASE_URL: baseURL,
+		DB_URL:   db,
 	}, nil
 
 }

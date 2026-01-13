@@ -1,8 +1,10 @@
 package http
 
 import (
+	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -12,7 +14,12 @@ type HttpClient struct {
 	BaseURL   string
 }
 
-func CreateHttpClient(baseURL string, token string) *HttpClient {
+func CreateHttpClient(token string) *HttpClient {
+	baseURL := os.Getenv("BASE_URL")
+	if baseURL == "" {
+		fmt.Fprint(os.Stderr, "No base url env variable found")
+		return &HttpClient{}
+	}
 	client := &HttpClient{
 		Client: &http.Client{
 			Timeout: 20 * time.Second,

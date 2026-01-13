@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"github.com/aegio22/postflow/internal/routes"
 )
 
 func CreateServer() (*http.Server, error) {
@@ -15,7 +17,8 @@ func CreateServer() (*http.Server, error) {
 	r := cfg.NewRouter()
 
 	//initialize core endpoints and handlers
-	r.HandleFunc("POST /api/signup", cfg.handlerSignUp)
+	r.HandleFunc("POST "+routes.SignUp, cfg.handlerSignUp)
+	r.HandleFunc("POST "+routes.Login, cfg.handlerLogin)
 	//initialize and start server
 	server := &http.Server{
 		Addr:              ":8080",

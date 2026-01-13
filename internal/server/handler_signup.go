@@ -6,55 +6,81 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aegio22/postflow/internal/client/repl"
+	"github.com/aegio22/postflow/internal/client/auth"
 	"github.com/aegio22/postflow/internal/database"
 	"github.com/google/uuid"
 )
 
 type DBUserResponse struct {
-	ID        uuid.UUID
-	Username  string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Email     string
+	ID          uuid.UUID `json:"id"`
+	Username    string    `json:"username"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	Email       string    `json:"email"`
+	AccessToken string    `json:"access_token"`
+}
+
+type UserInfo struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (c *Config) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var userInfo repl.UserInfo
+	var userInfo UserInfo
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&userInfo)
 	if err != nil {
 		log.Printf("error decoding request: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
+	//add user to db
+	hashedPassword, err := auth.HashPassword(userInfo.Password)
+	if err != nil {
+		log.Printf("error hashing password for DB storage: %v", err)
+		respondError(w, http.StatusConflict, "error hashing password for DB storage")
+		return
+	}
 	newUser, err := c.DB.CreateUser(ctx, database.CreateUserParams{
-		Username: userInfo.Username, Email: userInfo.Email, HashedPassword: userInfo.HashedPassword,
+		Username: userInfo.Username, Email: userInfo.Email, HashedPassword: hashedPassword,
 	})
 	if err != nil {
 		log.Printf("error registering user: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "error registering user")
+		return
+	}
+	accessToken, err := auth.MakeJWT(newUser.ID, c.Env.JWT_SECRET)
+	if err != nil {
+		log.Printf("error making JWT: %v", err)
+		respondError(w, http.StatusBadRequest, "error making JWT")
+		return
+	}
+	//create refresh token and add it to the DB
+	issuedToken, err := auth.MakeRefreshToken()
+	if err != nil {
+		log.Printf("error making user refresh token: %v", err)
+		respondError(w, http.StatusBadRequest, "error making user refresh token")
+		return
+	}
+	_, err = c.DB.CreateRefreshToken(ctx, database.CreateRefreshTokenParams{Token: issuedToken, UserID: newUser.ID, ExpiresAt: time.Now().AddDate(0, 0, 60)})
+	if err != nil {
+		log.Printf("error adding refresh token to database: %v", err)
+		respondError(w, http.StatusBadRequest, "error adding refresh token to database")
 		return
 	}
 
 	respUser := DBUserResponse{
-		ID:        newUser.ID,
-		Username:  newUser.Username,
-		CreatedAt: newUser.CreatedAt,
-		UpdatedAt: newUser.UpdatedAt,
-		Email:     newUser.Email,
+		ID:          newUser.ID,
+		Username:    newUser.Username,
+		CreatedAt:   newUser.CreatedAt,
+		UpdatedAt:   newUser.UpdatedAt,
+		Email:       newUser.Email,
+		AccessToken: accessToken,
 	}
 
-	responseBody, err := json.Marshal(respUser)
-	if err != nil {
-		log.Printf("error marshaling response body: %v", err)
-		w.WriteHeader(http.StatusConflict)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(responseBody)
-
+	//ready and write response
+	respondJSON(w, http.StatusCreated, respUser)
 }

@@ -32,8 +32,20 @@ func cleanInput(text string) []string {
 	return words
 }
 
-func getCommands() map[string]cliCommand {
-	return map[string]cliCommand{}
+func (c *Commands) getCommands() map[string]cliCommand {
+	//add commands here
+	return map[string]cliCommand{
+		"register": {
+			name:        "register",
+			description: "register a new user",
+			callback:    c.SignUp,
+		},
+		"login": {
+			name:        "login",
+			description: "login with email and password",
+			callback:    c.Login,
+		},
+	}
 }
 
 func StartREPL() {
@@ -62,8 +74,11 @@ func StartREPL() {
 		} else {
 			args = []string{}
 		}
-
-		cmd, exists := getCommands()[commandName]
+		client := http.CreateHttpClient("http://localhost:8080/", "")
+		registry := Commands{
+			httpClient: client,
+		}
+		cmd, exists := registry.getCommands()[commandName]
 
 		if !exists {
 			fmt.Println("Unknown command")

@@ -7,13 +7,19 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/aegio22/postflow/internal/client/auth"
+	"github.com/aegio22/postflow/internal/routes"
 )
 
 type UserInfo struct {
-	Username       string `json:"username"`
-	Email          string `json:"email"`
-	HashedPassword string `json:"hashed_password"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"hashed_password"`
+}
+
+type SignUpResponse struct {
+	UserID  string `json:"id"`
+	Token   string `json:"access_token"`
+	Message string `json:"message"`
 }
 
 func (c *Commands) SignUp(args []string) error {
@@ -21,17 +27,13 @@ func (c *Commands) SignUp(args []string) error {
 		return errors.New("sign up takes 3 arguments: username, email, password")
 	}
 
-	hashedPassword, err := auth.HashPassword(args[2])
-	if err != nil {
-		return err
-	}
-	newUser := UserInfo{Username: args[0], Email: args[1], HashedPassword: hashedPassword}
+	newUser := UserInfo{Username: args[0], Email: args[1], Password: args[2]}
 	requestBody, err := json.Marshal(newUser)
 	if err != nil {
 		return fmt.Errorf("error marshaling request body")
 	}
 
-	url := c.httpClient.BaseURL + "/api/signup"
+	url := c.httpClient.BaseURL + routes.SignUp
 	resp, err := c.httpClient.Post(url, bytes.NewBuffer(requestBody))
 	if err != nil {
 		return fmt.Errorf("request failed: %v", err)
@@ -40,19 +42,19 @@ func (c *Commands) SignUp(args []string) error {
 
 	if resp.StatusCode != http.StatusCreated {
 		var errResp ErrorResponse
-		if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
-			// Fallback: couldn't parse error response
-			return fmt.Errorf("signup failed with status %d: %w", resp.StatusCode, err)
-		}
-
-		// Successfully parsed error response
-		if errResp.Error != "" {
-			return fmt.Errorf("signup failed: %s", errResp.Error)
-		}
-
-		// Error response was empty
-		return fmt.Errorf("signup failed with status %d", resp.StatusCode)
+		json.NewDecoder(resp.Body).Decode(&errResp)
+		return fmt.Errorf("signup failed: %s", errResp.Error)
 	}
+
+	var signupResp SignUpResponse
+	if err := json.NewDecoder(resp.Body).Decode(&signupResp); err != nil {
+		return fmt.Errorf("failed to decode response: %v", err)
+	}
+
+	c.httpClient.SetAuthToken(signupResp.Token)
+	fmt.Printf("Account created successfully!\n")
+	fmt.Printf("User ID: %s\n", signupResp.UserID)
+	fmt.Printf("Logged in automatically\n")
 	return nil
 
 }

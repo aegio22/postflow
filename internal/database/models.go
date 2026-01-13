@@ -5,10 +5,45 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+type Asset struct {
+	ID                   uuid.UUID
+	ProjectID            uuid.UUID
+	Name                 string
+	Description          sql.NullString
+	AssetType            string
+	StoragePath          string
+	Tags                 []string
+	CurrentVersionNumber int32
+	Status               string
+	CreatedBy            uuid.UUID
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+}
+
+type Project struct {
+	ID          uuid.UUID
+	Title       string
+	Description sql.NullString
+	Status      string
+	CreatedBy   uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type RefreshToken struct {
+	Token     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	UserID    uuid.UUID
+	ExpiresAt time.Time
+	RevokedAt sql.NullTime
+}
 
 type User struct {
 	ID             uuid.UUID
@@ -17,4 +52,11 @@ type User struct {
 	UpdatedAt      time.Time
 	Email          string
 	HashedPassword string
+}
+
+type UsersProject struct {
+	ID         uuid.UUID
+	ProjectID  uuid.UUID
+	UserID     uuid.UUID
+	UserStatus string
 }

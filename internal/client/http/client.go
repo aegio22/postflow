@@ -10,11 +10,11 @@ import (
 
 type HttpClient struct {
 	Client    *http.Client
-	AuthToken string
 	BaseURL   string
+	AuthToken string
 }
 
-func CreateHttpClient(token string) *HttpClient {
+func CreateHttpClient() *HttpClient {
 	baseURL := os.Getenv("BASE_URL")
 	if baseURL == "" {
 		fmt.Fprint(os.Stderr, "No base url env variable found")
@@ -24,9 +24,10 @@ func CreateHttpClient(token string) *HttpClient {
 		Client: &http.Client{
 			Timeout: 20 * time.Second,
 		},
-		AuthToken: token,
-		BaseURL:   baseURL,
+		BaseURL: baseURL,
 	}
+	token := loadToken()
+	client.SetSession(token)
 	return client
 }
 
@@ -54,4 +55,9 @@ func (c *HttpClient) Do(req *http.Request) (*http.Response, error) {
 
 func (c *HttpClient) SetAuthToken(token string) {
 	c.AuthToken = token
+}
+
+func (c *HttpClient) SetSession(token string) {
+	c.AuthToken = token
+	saveToken(token)
 }

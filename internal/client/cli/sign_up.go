@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 
 	"github.com/aegio22/postflow/internal/routes"
 )
@@ -13,7 +15,7 @@ import (
 type UserInfo struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
-	Password string `json:"hashed_password"`
+	Password string `json:"password"`
 }
 
 type SignUpResponse struct {
@@ -40,10 +42,13 @@ func (c *Commands) SignUp(args []string) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		var errResp ErrorResponse
-		json.NewDecoder(resp.Body).Decode(&errResp)
-		return fmt.Errorf("signup failed: %s", errResp.Error)
+		if err := json.NewDecoder(resp.Body).Decode(&errResp); err == nil && errResp.Error != "" {
+			return fmt.Errorf("signup failed: %s", errResp.Error)
+		}
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("signup failed with status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 
 	var signupResp SignUpResponse
@@ -51,7 +56,7 @@ func (c *Commands) SignUp(args []string) error {
 		return fmt.Errorf("failed to decode response: %v", err)
 	}
 
-	c.httpClient.SetAuthToken(signupResp.Token)
+	c.httpClient.SetSession(signupResp.Token)
 	fmt.Printf("Account created successfully!\n")
 	fmt.Printf("User ID: %s\n", signupResp.UserID)
 	fmt.Printf("Logged in automatically\n")

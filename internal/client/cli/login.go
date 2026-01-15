@@ -43,6 +43,13 @@ func (c *Commands) Login(args []string) error {
 		// Error response was empty
 		return fmt.Errorf("login failed with status %d", resp.StatusCode)
 	}
+	var loginResponse struct {
+		AccessToken string `json:"token"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
+		return fmt.Errorf("failed to decode response: %v", err)
+	}
+	c.httpClient.SetSession(loginResponse.AccessToken)
 	return nil
 
 }

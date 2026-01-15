@@ -65,7 +65,7 @@ func RunCLI() {
 	cmdName := os.Args[1]
 	args := os.Args[2:]
 
-	client := http.CreateHttpClient("")
+	client := http.CreateHttpClient()
 	registry := Commands{
 		httpClient: client,
 	}

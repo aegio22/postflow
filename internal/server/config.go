@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/aegio22/postflow/internal/database"
+	_ "github.com/lib/pq"
 )
 
 type Config struct {

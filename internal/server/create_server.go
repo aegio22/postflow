@@ -19,6 +19,7 @@ func CreateServer() (*http.Server, error) {
 	//initialize core endpoints and handlers
 	r.HandleFunc("POST "+routes.SignUp, cfg.handlerSignUp)
 	r.HandleFunc("POST "+routes.Login, cfg.handlerLogin)
+	r.HandleFunc("POST "+routes.Projects, cfg.handlerCreateProject)
 	//initialize and start server
 	server := &http.Server{
 		Addr:              ":8080",

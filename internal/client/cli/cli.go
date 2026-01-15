@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/aegio22/postflow/internal/client/http"
+	"github.com/aegio22/postflow/internal/server"
 )
 
 // Command registry
@@ -36,6 +37,22 @@ func (c *Commands) getCommands() map[string]cliCommand {
 			name:        "login",
 			description: "login with email and password",
 			callback:    c.Login,
+		},
+		"serve": {
+			name:        "serve",
+			description: "initialize the postflow server",
+			callback:    server.Run,
+		},
+		"projects": {
+			name:        "projects",
+			description: "followed by projects subcommands",
+			callback:    c.Projects,
+		},
+		//not reachable from here. only in cmd registry for the help command's accuracy
+		"projects create": {
+			name:        "projects create",
+			description: "create a new project",
+			callback:    c.CreateProject,
 		},
 	}
 }

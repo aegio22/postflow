@@ -6,25 +6,13 @@ import (
 	"net/http"
 
 	"github.com/aegio22/postflow/internal/client/auth"
+	"github.com/aegio22/postflow/internal/client/models"
 	"github.com/aegio22/postflow/internal/database"
-	"github.com/google/uuid"
 )
-
-type ProjectCreateRequest struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-}
-type ProjectResponse struct {
-	ID          uuid.UUID `json:"id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Status      string    `json:"status"`
-	CreatedBy   uuid.UUID `json:"created_by"`
-}
 
 func (c *Config) handlerCreateProject(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var projInfo ProjectCreateRequest
+	var projInfo models.ProjectRequest
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&projInfo)
 	if err != nil {
@@ -49,7 +37,7 @@ func (c *Config) handlerCreateProject(w http.ResponseWriter, r *http.Request) {
 		log.Printf("error creating project: %v", err)
 		respondError(w, http.StatusBadRequest, "project creation failed")
 	}
-	responseBody := ProjectResponse{
+	responseBody := models.ProjectResponse{
 		ID:          project.ID,
 		Title:       project.Title,
 		Description: project.Description.String,

@@ -44,3 +44,23 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 	)
 	return i, err
 }
+
+const getProjectByTitle = `-- name: GetProjectByTitle :one
+SELECT id, title, description, status, created_by, created_at, updated_at FROM projects
+WHERE title = $1
+`
+
+func (q *Queries) GetProjectByTitle(ctx context.Context, title string) (Project, error) {
+	row := q.db.QueryRowContext(ctx, getProjectByTitle, title)
+	var i Project
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Status,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

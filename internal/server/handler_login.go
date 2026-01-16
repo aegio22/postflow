@@ -6,11 +6,12 @@ import (
 	"net/http"
 
 	"github.com/aegio22/postflow/internal/client/auth"
+	"github.com/aegio22/postflow/internal/client/models"
 )
 
 func (c *Config) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var userInfo UserInfo
+	var userInfo models.UserInfo
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&userInfo)
 	if err != nil {
@@ -42,9 +43,7 @@ func (c *Config) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var loginResponse struct {
-		AccessToken string `json:"token"`
-	}
+	var loginResponse models.LoginResponse
 	loginResponse.AccessToken = accessToken
 	respondJSON(w, http.StatusAccepted, loginResponse)
 

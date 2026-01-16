@@ -9,27 +9,16 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aegio22/postflow/internal/client/models"
 	"github.com/aegio22/postflow/internal/routes"
 )
-
-type UserInfo struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type SignUpResponse struct {
-	UserID  string `json:"id"`
-	Token   string `json:"access_token"`
-	Message string `json:"message"`
-}
 
 func (c *Commands) SignUp(args []string) error {
 	if len(args) != 3 {
 		return errors.New("sign up takes 3 arguments: username, email, password")
 	}
 
-	newUser := UserInfo{Username: args[0], Email: args[1], Password: args[2]}
+	newUser := models.UserInfo{Username: args[0], Email: args[1], Password: args[2]}
 	requestBody, err := json.Marshal(newUser)
 	if err != nil {
 		return fmt.Errorf("error marshaling request body")
@@ -51,7 +40,7 @@ func (c *Commands) SignUp(args []string) error {
 		return fmt.Errorf("signup failed with status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 
-	var signupResp SignUpResponse
+	var signupResp models.SignUpResponse
 	if err := json.NewDecoder(resp.Body).Decode(&signupResp); err != nil {
 		return fmt.Errorf("failed to decode response: %v", err)
 	}

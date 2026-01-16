@@ -7,28 +7,13 @@ import (
 	"time"
 
 	"github.com/aegio22/postflow/internal/client/auth"
+	"github.com/aegio22/postflow/internal/client/models"
 	"github.com/aegio22/postflow/internal/database"
-	"github.com/google/uuid"
 )
-
-type DBUserResponse struct {
-	ID          uuid.UUID `json:"id"`
-	Username    string    `json:"username"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Email       string    `json:"email"`
-	AccessToken string    `json:"access_token"`
-}
-
-type UserInfo struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
 
 func (c *Config) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var userInfo UserInfo
+	var userInfo models.UserInfo
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&userInfo)
 	if err != nil {
@@ -72,7 +57,7 @@ func (c *Config) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respUser := DBUserResponse{
+	respUser := models.DBUserResponse{
 		ID:          newUser.ID,
 		Username:    newUser.Username,
 		CreatedAt:   newUser.CreatedAt,

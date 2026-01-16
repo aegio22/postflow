@@ -54,6 +54,11 @@ func (c *Commands) getCommands() map[string]cliCommand {
 			description: "create a new project",
 			callback:    c.CreateProject,
 		},
+		"projects addmem": {
+			name:        "projects addmem",
+			description: "add a new project member by project title, user email, and user status (admin, staff, or viewer)",
+			callback:    c.AddUserToProject,
+		},
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/aegio22/postflow/internal/client/models"
 	"github.com/aegio22/postflow/internal/routes"
 )
 
@@ -15,7 +16,7 @@ func (c *Commands) Login(args []string) error {
 		return errors.New("sign up takes 2 arguments:email, password")
 	}
 
-	userCredentials := UserInfo{Email: args[0], Password: args[1]}
+	userCredentials := models.UserInfo{Email: args[0], Password: args[1]}
 	requestBody, err := json.Marshal(userCredentials)
 	if err != nil {
 		return fmt.Errorf("error marshaling request body")

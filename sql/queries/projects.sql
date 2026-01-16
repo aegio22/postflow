@@ -9,3 +9,8 @@ VALUES (
     NOW()
 )
 RETURNING *;
+
+
+-- name: GetProjectByTitle :one
+SELECT * FROM projects
+WHERE title = $1;

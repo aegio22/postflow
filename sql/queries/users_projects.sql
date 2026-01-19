@@ -6,3 +6,8 @@ VALUES(
     $3
 )
 RETURNING *;
+
+
+-- name: GetUserFromUsersProjects :one
+SELECT * FROM users_projects
+WHERE user_id = $1;

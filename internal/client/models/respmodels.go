@@ -37,3 +37,10 @@ type ProjectMemberAddResponse struct {
 	ProjectName string `json:"project_name"`
 	UserStatus  string `json:"user_status"`
 }
+
+type UploadAssetResponse struct {
+	AssetID   string `json:"asset_id"`
+	UploadURL string `json:"upload_url"`
+	S3Key     string `json:"s3_key"`
+	ExpiresIn int    `json:"expires_in"`
+}

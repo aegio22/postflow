@@ -59,6 +59,18 @@ func (c *Commands) getCommands() map[string]cliCommand {
 			description: "add a new project member by project title, user email, and user status (admin, staff, or viewer)",
 			callback:    c.AddUserToProject,
 		},
+		//reachable
+		"assets": {
+			name:        "assets",
+			description: "followed by assets subcommands",
+			callback:    c.Assets,
+		},
+		//unreachable
+		"assets upload": {
+			name:        "assets upload",
+			description: "upload new asset to project by project title",
+			callback:    c.UploadAsset,
+		},
 	}
 }
 

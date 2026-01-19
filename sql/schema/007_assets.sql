@@ -1,0 +1,9 @@
+-- +goose Up
+ALTER TABLE assets
+    ALTER COLUMN tags TYPE TEXT,
+    ALTER COLUMN tags SET NOT NULL;
+
+-- +goose Down
+ALTER TABLE assets
+    ALTER COLUMN tags DROP NOT NULL,
+    ALTER COLUMN tags TYPE TEXT[] USING ARRAY[tags];

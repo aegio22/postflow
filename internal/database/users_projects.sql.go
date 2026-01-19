@@ -38,3 +38,20 @@ func (q *Queries) AddNewProjectUser(ctx context.Context, arg AddNewProjectUserPa
 	)
 	return i, err
 }
+
+const getUserFromUsersProjects = `-- name: GetUserFromUsersProjects :one
+SELECT id, project_id, user_id, user_status FROM users_projects
+WHERE user_id = $1
+`
+
+func (q *Queries) GetUserFromUsersProjects(ctx context.Context, userID uuid.UUID) (UsersProject, error) {
+	row := q.db.QueryRowContext(ctx, getUserFromUsersProjects, userID)
+	var i UsersProject
+	err := row.Scan(
+		&i.ID,
+		&i.ProjectID,
+		&i.UserID,
+		&i.UserStatus,
+	)
+	return i, err
+}

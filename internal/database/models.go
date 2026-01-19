@@ -18,7 +18,7 @@ type Asset struct {
 	Description          sql.NullString
 	AssetType            string
 	StoragePath          string
-	Tags                 []string
+	Tags                 string
 	CurrentVersionNumber int32
 	Status               string
 	CreatedBy            uuid.UUID

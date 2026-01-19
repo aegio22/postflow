@@ -11,10 +11,9 @@ import (
 )
 
 type Config struct {
-	DB        *database.Queries
-	Env       *Env
-	AWSConfig config.Config
-	S3Client  *storage.S3Client
+	DB       *database.Queries
+	Env      *Env
+	S3Client *storage.S3Client // ✅ make sure this field exists
 }
 
 func CreateConfig() (*Config, error) {
@@ -28,15 +27,20 @@ func CreateConfig() (*Config, error) {
 		return nil, err
 	}
 
-	awsCfg, err := config.LoadDefaultConfig(context.TODO())
+	// ✅ Load AWS config
+	awsCfg, err := config.LoadDefaultConfig(context.Background(),
+		config.WithRegion(env.AWS_REGION),
+	)
+	if err != nil {
+		return nil, err
+	}
 
-	dbQueries := database.New(db)
+	// ✅ Create S3 client
+	s3Client := storage.NewS3(awsCfg, env.S3_BUCKET)
 
-	storage.NewS3(awsCfg, env.S3_BUCKET)
 	return &Config{
-		DB:        dbQueries,
-		Env:       env,
-		AWSConfig: awsCfg,
+		DB:       database.New(db),
+		Env:      env,
+		S3Client: s3Client, // ✅ assign it here
 	}, nil
-
 }

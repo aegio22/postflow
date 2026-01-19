@@ -10,7 +10,7 @@ func (c *Commands) Assets(args []string) error {
 	args = args[1:]
 	switch sub {
 	case "upload":
-		c.UploadAsset(args)
+		return c.UploadAsset(args)
 	case "view":
 
 	case "ls":

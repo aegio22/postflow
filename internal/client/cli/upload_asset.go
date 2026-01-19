@@ -16,13 +16,13 @@ import (
 )
 
 func (c *Commands) UploadAsset(args []string) error {
-	if len(args) != 4 {
-		return errors.New("assets upload takes 4 arguments: ProjectName, AssetPath, and Tag")
+	if len(args) != 3 {
+		return errors.New("assets upload takes 3 arguments: ProjectName, AssetPath, and Tag")
 	}
-	
+
 	projectName := args[0]
-	assetPath := args[2]
-	tag := args[3]
+	assetPath := args[1]
+	tag := args[2]
 	assetName := filepath.Base(assetPath)
 	file, err := os.Open(assetPath)
 	if err != nil {

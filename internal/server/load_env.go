@@ -3,64 +3,47 @@ package server
 import (
 	"errors"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 type Env struct {
-	DB_URL                string
-	JWT_SECRET            string
-	BASE_URL              string
-	AWS_ACCESS_KEY_ID     string
-	AWS_SECRET_ACCESS_KEY string
-	S3_BUCKET             string
-	AWS_REGION            string
+	DB_URL     string
+	JWT_SECRET string
+	PORT       string
+	AWS_REGION string // ✅ add this
+	S3_BUCKET  string // ✅ add this
 }
 
 func LoadEnv() (*Env, error) {
-	godotenv.Load() // #nosec G104
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		return nil, errors.New("DATABASE_URL not set")
+	}
+
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
-		return nil, errors.New("no jwt secret found")
+		return nil, errors.New("JWT_SECRET not set")
 	}
 
-	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-	if awsAccessKey == "" {
-		return nil, errors.New("No AWS access key found")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = ":8080"
 	}
 
-	awsSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-	if awsSecretKey == "" {
-		return nil, errors.New("No AWS secret key found")
-	}
-
-	s3Bucket := os.Getenv("S3_BUCKET")
-	if s3Bucket == "" {
-		return nil, errors.New("No s3 bucket found")
-	}
-
-	awsRegion := os.Getenv("AWS_REGION")
+	awsRegion := os.Getenv("AWS_REGION") // ✅ add this
 	if awsRegion == "" {
-		return nil, errors.New("No AWS region found")
-	}
-	baseURL := os.Getenv("BASE_URL")
-	if baseURL == "" {
-		return nil, errors.New("baseurl env missing")
+		return nil, errors.New("AWS_REGION not set")
 	}
 
-	db := os.Getenv("DATABASE_URL")
-	if db == "" {
-		return nil, errors.New("db string missing")
+	s3Bucket := os.Getenv("S3_BUCKET") // ✅ add this
+	if s3Bucket == "" {
+		return nil, errors.New("S3_BUCKET not set")
 	}
 
 	return &Env{
-		BASE_URL:              baseURL,
-		DB_URL:                db,
-		JWT_SECRET:            jwtSecret,
-		AWS_ACCESS_KEY_ID:     awsAccessKey,
-		AWS_SECRET_ACCESS_KEY: awsSecretKey,
-		S3_BUCKET:             s3Bucket,
-		AWS_REGION:            awsRegion,
+		DB_URL:     dbURL,
+		JWT_SECRET: jwtSecret,
+		PORT:       port,
+		AWS_REGION: awsRegion, // ✅ add this
+		S3_BUCKET:  s3Bucket,  // ✅ add this
 	}, nil
-
 }

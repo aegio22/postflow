@@ -12,12 +12,11 @@ func (c *Commands) Projects(args []string) error {
 	args = args[1:]
 	switch sub {
 	case "create":
-		c.CreateProject(args)
+		return c.CreateProject(args)
 	case "addmem":
-		c.AddUserToProject(args)
+		return c.AddUserToProject(args)
 	default:
 		return errors.New("unsupported projects command. run projects help for more info.")
 	}
 
-	return nil
 }

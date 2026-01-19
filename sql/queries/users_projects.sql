@@ -8,6 +8,6 @@ VALUES(
 RETURNING *;
 
 
--- name: GetUserFromUsersProjects :one
+-- name: GetUserProjectRelation :one
 SELECT * FROM users_projects
-WHERE user_id = $1;
+WHERE user_id = $1 AND project_id = $2;

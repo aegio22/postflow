@@ -39,13 +39,18 @@ func (q *Queries) AddNewProjectUser(ctx context.Context, arg AddNewProjectUserPa
 	return i, err
 }
 
-const getUserFromUsersProjects = `-- name: GetUserFromUsersProjects :one
+const getUserProjectRelation = `-- name: GetUserProjectRelation :one
 SELECT id, project_id, user_id, user_status FROM users_projects
-WHERE user_id = $1
+WHERE user_id = $1 AND project_id = $2
 `
 
-func (q *Queries) GetUserFromUsersProjects(ctx context.Context, userID uuid.UUID) (UsersProject, error) {
-	row := q.db.QueryRowContext(ctx, getUserFromUsersProjects, userID)
+type GetUserProjectRelationParams struct {
+	UserID    uuid.UUID
+	ProjectID uuid.UUID
+}
+
+func (q *Queries) GetUserProjectRelation(ctx context.Context, arg GetUserProjectRelationParams) (UsersProject, error) {
+	row := q.db.QueryRowContext(ctx, getUserProjectRelation, arg.UserID, arg.ProjectID)
 	var i UsersProject
 	err := row.Scan(
 		&i.ID,

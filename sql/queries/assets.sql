@@ -20,3 +20,8 @@ RETURNING *;
 UPDATE assets
 SET storage_path = $2, updated_at = NOW()
 WHERE id = $1;
+
+
+-- name: GetAssetByName :one
+SELECT * FROM assets
+WHERE name = $1;

@@ -61,7 +61,7 @@ func (c *Commands) UploadAsset(args []string) error {
 		return fmt.Errorf("asset upload failed: %s", errResp.Error)
 	}
 
-	var assetResp models.UploadAssetResponse
+	var assetResp models.AssetResponse
 	err = json.NewDecoder(resp.Body).Decode(&assetResp)
 	if err != nil {
 		return fmt.Errorf("error decoding response body: %s", err)

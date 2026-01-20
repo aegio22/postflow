@@ -80,7 +80,7 @@ func (c *Config) handlerUploadAsset(w http.ResponseWriter, r *http.Request) {
 		log.Printf("failed to update storage path: %v", err)
 		respondError(w, http.StatusInternalServerError, "failed to update storage path")
 	}
-	responseBody := models.UploadAssetResponse{
+	responseBody := models.AssetResponse{
 		AssetID:   asset.ID.String(),
 		UploadURL: uploadURL,
 		S3Key:     s3Key,

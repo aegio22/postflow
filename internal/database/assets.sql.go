@@ -63,6 +63,31 @@ func (q *Queries) CreateAsset(ctx context.Context, arg CreateAssetParams) (Asset
 	return i, err
 }
 
+const getAssetByName = `-- name: GetAssetByName :one
+SELECT id, project_id, name, description, asset_type, storage_path, tags, current_version_number, status, created_by, created_at, updated_at FROM assets
+WHERE name = $1
+`
+
+func (q *Queries) GetAssetByName(ctx context.Context, name string) (Asset, error) {
+	row := q.db.QueryRowContext(ctx, getAssetByName, name)
+	var i Asset
+	err := row.Scan(
+		&i.ID,
+		&i.ProjectID,
+		&i.Name,
+		&i.Description,
+		&i.AssetType,
+		&i.StoragePath,
+		&i.Tags,
+		&i.CurrentVersionNumber,
+		&i.Status,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateAssetStoragePath = `-- name: UpdateAssetStoragePath :exec
 UPDATE assets
 SET storage_path = $2, updated_at = NOW()

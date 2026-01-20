@@ -38,7 +38,7 @@ type ProjectMemberAddResponse struct {
 	UserStatus  string `json:"user_status"`
 }
 
-type UploadAssetResponse struct {
+type AssetResponse struct {
 	AssetID   string `json:"asset_id"`
 	UploadURL string `json:"upload_url"`
 	S3Key     string `json:"s3_key"`

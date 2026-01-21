@@ -9,7 +9,7 @@ import (
 	"github.com/aegio22/postflow/internal/client/models"
 )
 
-func (c *Commands) GetAsset(args []string) error {
+func (c *Commands) ViewAsset(args []string) error {
 	if len(args) != 2 {
 		return errors.New("assets get takes 2 arguments: project_name and asset_name (eg. assets get project1 final_cut_v7.mov)")
 	}
@@ -24,23 +24,25 @@ func (c *Commands) GetAsset(args []string) error {
 		return fmt.Errorf("request failed: %s", err)
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		var errResp ErrorResponse
 		json.NewDecoder(resp.Body).Decode(&errResp)
-		return fmt.Errorf("asset upload failed: %s", errResp.Error)
+		return fmt.Errorf("asset view failed: %s", errResp.Error)
 	}
 
 	var responseBody models.AssetResponse
-	downloadUrl := responseBody.UploadURL
-	expiresIn := responseBody.ExpiresIn / 60
-	err = json.NewDecoder(resp.Body).Decode(&responseBody)
-	if err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&responseBody); err != nil {
 		return fmt.Errorf("error decoding response body: %s", err)
 	}
 
+	// NOW compute from the decoded struct
+	downloadURL := responseBody.UploadURL
+	expiresMinutes := responseBody.ExpiresIn / 60
+
 	fmt.Println("Asset fetched succesfully!")
-	fmt.Printf("URL (Expires in %v minutes):\n", expiresIn)
-	fmt.Println(downloadUrl)
+	fmt.Printf("URL (Expires in %v minutes):\n", expiresMinutes)
+	fmt.Println(downloadURL)
 
 	return nil
 }

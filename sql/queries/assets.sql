@@ -24,4 +24,4 @@ WHERE id = $1;
 
 -- name: GetAssetByName :one
 SELECT * FROM assets
-WHERE name = $1;
+WHERE name = $1 AND project_id= $2;

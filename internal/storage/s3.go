@@ -2,6 +2,8 @@ package storage
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -47,4 +49,12 @@ func (s *S3Client) PresignDownload(ctx context.Context, key string, expires time
 		return "", err
 	}
 	return out.URL, nil
+}
+
+func (s *S3Client) GetObject(ctx context.Context, key string) (io.ReadCloser, error) {
+	obj, err := s.Client.GetObject(ctx, &s3.GetObjectInput{Bucket: aws.String(s.Bucket), Key: (aws.String(key))})
+	if err != nil {
+		return nil, fmt.Errorf("error fetching s3 object: %v", err)
+	}
+	return obj.Body, nil
 }

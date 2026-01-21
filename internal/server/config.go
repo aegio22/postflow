@@ -13,7 +13,7 @@ import (
 type Config struct {
 	DB       *database.Queries
 	Env      *Env
-	S3Client *storage.S3Client // ✅ make sure this field exists
+	S3Client *storage.S3Client
 }
 
 func CreateConfig() (*Config, error) {
@@ -27,7 +27,6 @@ func CreateConfig() (*Config, error) {
 		return nil, err
 	}
 
-	// ✅ Load AWS config
 	awsCfg, err := config.LoadDefaultConfig(context.Background(),
 		config.WithRegion(env.AWS_REGION),
 	)
@@ -35,12 +34,11 @@ func CreateConfig() (*Config, error) {
 		return nil, err
 	}
 
-	// ✅ Create S3 client
 	s3Client := storage.NewS3(awsCfg, env.S3_BUCKET)
 
 	return &Config{
 		DB:       database.New(db),
 		Env:      env,
-		S3Client: s3Client, // ✅ assign it here
+		S3Client: s3Client,
 	}, nil
 }

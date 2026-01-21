@@ -36,11 +36,13 @@ func (c *Config) handlerCreateProject(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("error creating project: %v", err)
 		respondError(w, http.StatusBadRequest, "project creation failed")
+		return
 	}
 	_, err = c.DB.AddNewProjectUser(ctx, database.AddNewProjectUserParams{ProjectID: project.ID, UserID: userId, UserStatus: "admin"})
 	if err != nil {
 		log.Printf("error setting project author as admin: %v", err)
 		respondError(w, http.StatusBadRequest, "project creation failed")
+		return
 	}
 
 	responseBody := models.ProjectResponse{

@@ -60,6 +60,11 @@ func (c *Config) handlerUploadAsset(w http.ResponseWriter, r *http.Request) {
 		Tags:        assetInfo.Tag,
 		CreatedBy:   userId,
 	})
+	if err != nil {
+		log.Printf("error adding asset to db: %v", err)
+		respondError(w, http.StatusConflict, "error adding asset to database")
+		return
+	}
 
 	//Generate S3 key (where file will be stored)
 	s3Key := fmt.Sprintf("projects/%s/assets/%s/%s",

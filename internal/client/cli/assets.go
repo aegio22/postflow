@@ -12,7 +12,7 @@ func (c *Commands) Assets(args []string) error {
 	case "upload":
 		return c.UploadAsset(args)
 	case "view":
-
+		return c.ViewAsset(args)
 	case "ls":
 
 	default:

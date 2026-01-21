@@ -12,18 +12,16 @@ import (
 )
 
 type Asset struct {
-	ID                   uuid.UUID
-	ProjectID            uuid.UUID
-	Name                 string
-	Description          sql.NullString
-	AssetType            string
-	StoragePath          string
-	Tags                 string
-	CurrentVersionNumber int32
-	Status               string
-	CreatedBy            uuid.UUID
-	CreatedAt            time.Time
-	UpdatedAt            time.Time
+	ID          uuid.UUID
+	ProjectID   uuid.UUID
+	Name        string
+	Description sql.NullString
+	StoragePath string
+	Tags        string
+	Status      string
+	CreatedBy   uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type Project struct {

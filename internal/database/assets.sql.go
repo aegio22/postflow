@@ -26,7 +26,7 @@ VALUES (
     $4,
     $5
 )
-RETURNING id, project_id, name, description, asset_type, storage_path, tags, current_version_number, status, created_by, created_at, updated_at
+RETURNING id, project_id, name, description, storage_path, tags, status, created_by, created_at, updated_at
 `
 
 type CreateAssetParams struct {
@@ -51,10 +51,8 @@ func (q *Queries) CreateAsset(ctx context.Context, arg CreateAssetParams) (Asset
 		&i.ProjectID,
 		&i.Name,
 		&i.Description,
-		&i.AssetType,
 		&i.StoragePath,
 		&i.Tags,
-		&i.CurrentVersionNumber,
 		&i.Status,
 		&i.CreatedBy,
 		&i.CreatedAt,
@@ -64,22 +62,25 @@ func (q *Queries) CreateAsset(ctx context.Context, arg CreateAssetParams) (Asset
 }
 
 const getAssetByName = `-- name: GetAssetByName :one
-SELECT id, project_id, name, description, asset_type, storage_path, tags, current_version_number, status, created_by, created_at, updated_at FROM assets
-WHERE name = $1
+SELECT id, project_id, name, description, storage_path, tags, status, created_by, created_at, updated_at FROM assets
+WHERE name = $1 AND project_id= $2
 `
 
-func (q *Queries) GetAssetByName(ctx context.Context, name string) (Asset, error) {
-	row := q.db.QueryRowContext(ctx, getAssetByName, name)
+type GetAssetByNameParams struct {
+	Name      string
+	ProjectID uuid.UUID
+}
+
+func (q *Queries) GetAssetByName(ctx context.Context, arg GetAssetByNameParams) (Asset, error) {
+	row := q.db.QueryRowContext(ctx, getAssetByName, arg.Name, arg.ProjectID)
 	var i Asset
 	err := row.Scan(
 		&i.ID,
 		&i.ProjectID,
 		&i.Name,
 		&i.Description,
-		&i.AssetType,
 		&i.StoragePath,
 		&i.Tags,
-		&i.CurrentVersionNumber,
 		&i.Status,
 		&i.CreatedBy,
 		&i.CreatedAt,

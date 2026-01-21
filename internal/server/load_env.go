@@ -29,12 +29,12 @@ func LoadEnv() (*Env, error) {
 		port = ":8080"
 	}
 
-	awsRegion := os.Getenv("AWS_REGION") // ✅ add this
+	awsRegion := os.Getenv("AWS_REGION")
 	if awsRegion == "" {
 		return nil, errors.New("AWS_REGION not set")
 	}
 
-	s3Bucket := os.Getenv("S3_BUCKET") // ✅ add this
+	s3Bucket := os.Getenv("S3_BUCKET")
 	if s3Bucket == "" {
 		return nil, errors.New("S3_BUCKET not set")
 	}
@@ -43,7 +43,7 @@ func LoadEnv() (*Env, error) {
 		DB_URL:     dbURL,
 		JWT_SECRET: jwtSecret,
 		PORT:       port,
-		AWS_REGION: awsRegion, // ✅ add this
-		S3_BUCKET:  s3Bucket,  // ✅ add this
+		AWS_REGION: awsRegion,
+		S3_BUCKET:  s3Bucket,
 	}, nil
 }

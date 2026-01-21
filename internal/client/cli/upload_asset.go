@@ -26,12 +26,12 @@ func (c *Commands) UploadAsset(args []string) error {
 	assetName := filepath.Base(assetPath)
 	file, err := os.Open(assetPath)
 	if err != nil {
-		return fmt.Errorf("failed to open file: %w", err)
+		return fmt.Errorf("failed to open file: %v", err)
 	}
 	defer file.Close()
 	fileInfo, err := file.Stat()
 	if err != nil {
-		return fmt.Errorf("failed to stat file: %w", err)
+		return fmt.Errorf("failed to stat file: %v", err)
 	}
 
 	fileName := filepath.Base(assetPath)
@@ -41,7 +41,6 @@ func (c *Commands) UploadAsset(args []string) error {
 	assetRequest := models.AssetRequest{
 		ProjectName: projectName,
 		AssetName:   assetName,
-		Filepath:    assetPath,
 		Tag:         tag,
 	}
 
@@ -73,7 +72,7 @@ func (c *Commands) UploadAsset(args []string) error {
 	file.Seek(0, 0) // reset file pointer
 	putReq, err := http.NewRequest(http.MethodPut, assetResp.UploadURL, file)
 	if err != nil {
-		return fmt.Errorf("failed to create upload request: %w", err)
+		return fmt.Errorf("failed to create upload request: %v", err)
 	}
 
 	putReq.ContentLength = fileSize
@@ -81,7 +80,7 @@ func (c *Commands) UploadAsset(args []string) error {
 	client := &http.Client{}
 	putResp, err := client.Do(putReq)
 	if err != nil {
-		return fmt.Errorf("failed to upload file: %w", err)
+		return fmt.Errorf("failed to upload file: %v", err)
 	}
 	defer putResp.Body.Close()
 

@@ -44,3 +44,8 @@ type AssetResponse struct {
 	S3Key     string `json:"s3_key"`
 	ExpiresIn int    `json:"expires_in"`
 }
+
+type ProjectsLsResponse struct {
+	UserName string `json:"user_name"`
+	Projects map[string]string `json:"projects_map"`
+}

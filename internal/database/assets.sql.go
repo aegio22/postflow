@@ -89,6 +89,48 @@ func (q *Queries) GetAssetByName(ctx context.Context, arg GetAssetByNameParams) 
 	return i, err
 }
 
+const getAssetsByProjectName = `-- name: GetAssetsByProjectName :many
+SELECT a.id, a.project_id, a.name, a.description, a.storage_path, a.tags, a.status, a.created_by, a.created_at, a.updated_at 
+from assets a
+JOIN projects p
+    on p.id = a.project_id
+WHERE p.title = $1
+`
+
+func (q *Queries) GetAssetsByProjectName(ctx context.Context, title string) ([]Asset, error) {
+	rows, err := q.db.QueryContext(ctx, getAssetsByProjectName, title)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Asset
+	for rows.Next() {
+		var i Asset
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProjectID,
+			&i.Name,
+			&i.Description,
+			&i.StoragePath,
+			&i.Tags,
+			&i.Status,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateAssetStoragePath = `-- name: UpdateAssetStoragePath :exec
 UPDATE assets
 SET storage_path = $2, updated_at = NOW()

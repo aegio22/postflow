@@ -14,3 +14,11 @@ RETURNING *;
 -- name: GetProjectByTitle :one
 SELECT * FROM projects
 WHERE title = $1;
+
+
+-- name: GetProjectsForUser :many
+SELECT p.*
+FROM projects p
+JOIN users_projects up
+  ON up.project_id = p.id
+WHERE up.user_id = $1;

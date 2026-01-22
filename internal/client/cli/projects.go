@@ -15,6 +15,8 @@ func (c *Commands) Projects(args []string) error {
 		return c.CreateProject(args)
 	case "addmem":
 		return c.AddUserToProject(args)
+	case "ls":
+		return c.LsProjects(args)
 	default:
 		return errors.New("unsupported projects command. run projects help for more info.")
 	}

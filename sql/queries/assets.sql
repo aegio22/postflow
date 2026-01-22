@@ -25,3 +25,10 @@ WHERE id = $1;
 -- name: GetAssetByName :one
 SELECT * FROM assets
 WHERE name = $1 AND project_id= $2;
+
+-- name: GetAssetsByProjectName :many
+SELECT a.* 
+from assets a
+JOIN projects p
+    on p.id = a.project_id
+WHERE p.title = $1;

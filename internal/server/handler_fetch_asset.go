@@ -62,7 +62,7 @@ func (c *Config) handlerViewAsset(w http.ResponseWriter, r *http.Request) {
 
 	// Generate presigned S3 GET URL for this asset
 	const ttl = 15 * time.Minute
-	downloadURL, err := c.S3Client.PresignDownload(ctx, asset.StoragePath, ttl)
+	downloadURL, err := c.S3Client.PresignDownload(ctx, asset.StoragePath, ttl, assetName)
 	if err != nil {
 		log.Printf("failed to generate presigned download URL: %v", err)
 		respondError(w, http.StatusInternalServerError, "failed to generate asset URL")

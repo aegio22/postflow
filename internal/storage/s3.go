@@ -38,10 +38,13 @@ func (s *S3Client) PresignUpload(ctx context.Context, key string, expires time.D
 	return out.URL, nil
 }
 
-func (s *S3Client) PresignDownload(ctx context.Context, key string, expires time.Duration) (string, error) {
+func (s *S3Client) PresignDownload(ctx context.Context, key string, expires time.Duration, filename string) (string, error) {
 	out, err := s.Presign.PresignGetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(s.Bucket),
 		Key:    aws.String(key),
+		ResponseContentDisposition: aws.String(
+			fmt.Sprintf(`attachment; filename="%s"`, filename),
+		),
 	}, func(o *s3.PresignOptions) {
 		o.Expires = expires
 	})

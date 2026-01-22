@@ -34,7 +34,6 @@ func (c *Commands) UploadAsset(args []string) error {
 		return fmt.Errorf("failed to stat file: %v", err)
 	}
 
-	fileName := filepath.Base(assetPath)
 	fileSize := fileInfo.Size()
 	url := c.httpClient.BaseURL + strings.Replace(routes.Assets, "{project_name}", projectName, 1)
 
@@ -67,7 +66,7 @@ func (c *Commands) UploadAsset(args []string) error {
 	}
 
 	fmt.Printf("Asset created: %s\n", assetResp.AssetID)
-	fmt.Printf("Uploading %s (%.2f MB)...\n", fileName, float64(fileSize)/(1024*1024))
+	fmt.Printf("Uploading %s (%.2f MB)...\n", assetName, float64(fileSize)/(1024*1024))
 
 	file.Seek(0, 0) // reset file pointer
 	putReq, err := http.NewRequest(http.MethodPut, assetResp.UploadURL, file)

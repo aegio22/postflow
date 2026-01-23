@@ -15,6 +15,9 @@ RETURNING *;
 SELECT * FROM projects
 WHERE title = $1;
 
+-- name: DeleteProjectByTitle :exec
+DELETE FROM projects
+WHERE title = $1;
 
 -- name: GetProjectsForUser :many
 SELECT p.*

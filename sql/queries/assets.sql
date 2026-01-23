@@ -33,3 +33,9 @@ JOIN projects p
     on p.id = a.project_id
 WHERE p.title = $1
 ORDER BY a.tags ASC;
+
+
+-- name: GetAssetsByProjectID :many
+SELECT *
+FROM assets
+WHERE project_id = $1;

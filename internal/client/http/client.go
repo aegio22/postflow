@@ -39,6 +39,14 @@ func (c *HttpClient) Get(url string) (*http.Response, error) {
 	return c.Do(req)
 }
 
+func (c *HttpClient) Delete(url string) (*http.Response, error) {
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	return c.Do(req)
+}
+
 func (c *HttpClient) Post(url string, body io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest("POST", url, body)
 	if err != nil {

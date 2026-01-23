@@ -25,6 +25,7 @@ func CreateServer() (*http.Server, error) {
 	r.HandleFunc("GET "+routes.ViewAssets, cfg.handlerViewAsset)
 	r.HandleFunc("GET "+routes.Projects, cfg.handlerLsProjects)
 	r.HandleFunc("GET "+routes.Assets, cfg.handlerLsAssets)
+	r.HandleFunc("DELETE "+routes.Projects, cfg.handlerDeleteProject)
 	//initialize and start server
 	server := &http.Server{
 		Addr:              ":8080",

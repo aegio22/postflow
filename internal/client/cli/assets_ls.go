@@ -22,9 +22,6 @@ func (c *Commands) AssetsLs(args []string) error {
 
 	resp, err := c.httpClient.Get(url)
 	if err != nil {
-		return fmt.Errorf("error performing request: %v", err)
-	}
-	if err != nil {
 		return fmt.Errorf("request failed: %v", err)
 	}
 	defer resp.Body.Close()

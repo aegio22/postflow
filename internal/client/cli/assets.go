@@ -19,5 +19,4 @@ func (c *Commands) Assets(args []string) error {
 		return errors.New("unsupported assets command. run assets help for more info.")
 	}
 
-	return nil
 }

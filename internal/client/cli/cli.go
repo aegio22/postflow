@@ -59,6 +59,16 @@ func (c *Commands) getCommands() map[string]cliCommand {
 			description: "add a new project member by project title, user email, and user status (admin, staff, or viewer)",
 			callback:    c.AddUserToProject,
 		},
+		"projects ls": {
+			name:        "projects ls",
+			description: "list all projects the logged in user is a member of",
+			callback:    c.LsProjects,
+		},
+		"projects delete": {
+			name:        "projects delete",
+			description: "delete a project from the database by project title. Will only work if the logged in user is a project admin",
+			callback:    c.DeleteProject,
+		},
 		//reachable
 		"assets": {
 			name:        "assets",
@@ -70,6 +80,16 @@ func (c *Commands) getCommands() map[string]cliCommand {
 			name:        "assets upload",
 			description: "upload new asset to project by project title",
 			callback:    c.UploadAsset,
+		},
+		"assets view": {
+			name:        "assets view",
+			description: "download an asset by project title and asset filename",
+			callback:    c.ViewAsset,
+		},
+		"assets ls": {
+			name:        "assets ls",
+			description: "view all assets and their tags for a given project title",
+			callback:    c.AssetsLs,
 		},
 	}
 }

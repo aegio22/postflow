@@ -9,8 +9,8 @@ type Env struct {
 	DB_URL     string
 	JWT_SECRET string
 	PORT       string
-	AWS_REGION string // ✅ add this
-	S3_BUCKET  string // ✅ add this
+	AWS_REGION string
+	S3_BUCKET  string
 }
 
 func LoadEnv() (*Env, error) {

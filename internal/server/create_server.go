@@ -27,9 +27,10 @@ func CreateServer() (*http.Server, error) {
 	r.HandleFunc("GET "+routes.Assets, cfg.handlerLsAssets)
 	r.HandleFunc("DELETE "+routes.Projects, cfg.handlerDeleteProject)
 	r.HandleFunc("DELETE "+routes.Assets, cfg.handlerDeleteAsset)
+	r.HandleFunc("DELETE "+routes.ProjectMembers, cfg.handlerDeleteProjectMember)
 	//initialize and start server
 	server := &http.Server{
-		Addr:              ":8080",
+		Addr:              cfg.Env.PORT,
 		Handler:           r,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      10 * time.Second,

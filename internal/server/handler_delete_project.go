@@ -32,6 +32,7 @@ func (c *Config) handlerDeleteProject(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("error getting target project from DB: %v", err)
 		respondError(w, http.StatusBadRequest, "Project not found")
+		return
 	}
 
 	relation, err := c.DB.GetUserProjectRelation(ctx, database.GetUserProjectRelationParams{UserID: userId, ProjectID: project.ID})

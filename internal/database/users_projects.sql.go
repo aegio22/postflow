@@ -60,3 +60,18 @@ func (q *Queries) GetUserProjectRelation(ctx context.Context, arg GetUserProject
 	)
 	return i, err
 }
+
+const removeUserFromProject = `-- name: RemoveUserFromProject :exec
+DELETE FROM users_projects
+WHERE user_id = $1 AND project_id = $2
+`
+
+type RemoveUserFromProjectParams struct {
+	UserID    uuid.UUID
+	ProjectID uuid.UUID
+}
+
+func (q *Queries) RemoveUserFromProject(ctx context.Context, arg RemoveUserFromProjectParams) error {
+	_, err := q.db.ExecContext(ctx, removeUserFromProject, arg.UserID, arg.ProjectID)
+	return err
+}

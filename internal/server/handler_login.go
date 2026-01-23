@@ -51,12 +51,19 @@ func (c *Config) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusUnauthorized, "no refresh token found in DB for given user")
 		return
 	}
+	//Because of how sql.NullStrings work, RevokedAt is valid if the token HAS BEEN revoked
 	if refreshToken.RevokedAt.Valid {
 		log.Printf("refresh token is revoked for user %s", user.ID)
 		respondError(w, http.StatusUnauthorized, "refresh token revoked")
 		return
 	}
 	if refreshToken.ExpiresAt.Before(time.Now()) {
+		err = c.DB.RevokeToken(ctx, refreshToken.Token)
+		if err != nil {
+			log.Printf("error revoking expired refresh token: %v", err)
+			respondError(w, http.StatusConflict, "error revoking expired refresh token")
+			return
+		}
 		jwt, err := auth.MakeJWTSecret()
 		if err != nil {
 			log.Println(err)

@@ -44,9 +44,9 @@ func (c *Config) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//create refresh token and add it to the DB
-	issuedToken, err := auth.MakeRefreshToken()
+	issuedToken, err := auth.MakeJWTSecret()
 	if err != nil {
-		log.Printf("error making user refresh token: %v", err)
+		log.Printf("error making user secret token: %v", err)
 		respondError(w, http.StatusBadRequest, "error making user refresh token")
 		return
 	}
@@ -56,6 +56,8 @@ func (c *Config) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "error adding refresh token to database")
 		return
 	}
+
+	c.Env.JWT_SECRET = issuedToken
 
 	respUser := models.DBUserResponse{
 		ID:          newUser.ID,

@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func MakeRefreshToken() (string, error) {
+func MakeJWTSecret() (string, error) {
 	crypt := make([]byte, 32)
 	bytesWritten, err := rand.Read(crypt)
 	if err != nil {

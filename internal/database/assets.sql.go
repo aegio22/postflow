@@ -95,6 +95,7 @@ from assets a
 JOIN projects p
     on p.id = a.project_id
 WHERE p.title = $1
+ORDER BY a.tags ASC
 `
 
 func (q *Queries) GetAssetsByProjectName(ctx context.Context, title string) ([]Asset, error) {

@@ -31,4 +31,5 @@ SELECT a.*
 from assets a
 JOIN projects p
     on p.id = a.project_id
-WHERE p.title = $1;
+WHERE p.title = $1
+ORDER BY a.tags ASC;

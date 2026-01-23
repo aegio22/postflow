@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/aegio22/postflow/internal/client/auth"
 	"github.com/aegio22/postflow/internal/client/models"
+	"github.com/aegio22/postflow/internal/database"
 )
 
 func (c *Config) handlerLogin(w http.ResponseWriter, r *http.Request) {
@@ -41,6 +43,33 @@ func (c *Config) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	if passwordMatch != true {
 		respondError(w, http.StatusUnauthorized, "password does not match our records")
 		return
+	}
+
+	refreshToken, err := c.DB.GetTokenFromUserID(ctx, user.ID)
+	if err != nil {
+		log.Printf("no refresh token found in DB for given user: %v", err)
+		respondError(w, http.StatusUnauthorized, "no refresh token found in DB for given user")
+		return
+	}
+	if refreshToken.RevokedAt.Valid {
+		log.Printf("refresh token is revoked for user %s", user.ID)
+		respondError(w, http.StatusUnauthorized, "refresh token revoked")
+		return
+	}
+	if refreshToken.ExpiresAt.Before(time.Now()) {
+		jwt, err := auth.MakeJWTSecret()
+		if err != nil {
+			log.Println(err)
+			respondError(w, http.StatusConflict, "old access token expired, and there is an error making a new one")
+			return
+		}
+		_, err = c.DB.CreateRefreshToken(ctx, database.CreateRefreshTokenParams{Token: jwt, UserID: user.ID, ExpiresAt: time.Now().AddDate(0, 0, 60)})
+		if err != nil {
+			log.Printf("error adding refresh token to database: %v", err)
+			respondError(w, http.StatusBadRequest, "error adding refresh token to database")
+			return
+		}
+		c.Env.JWT_SECRET = jwt
 	}
 
 	var loginResponse models.LoginResponse

@@ -14,7 +14,7 @@ func (c *Commands) Assets(args []string) error {
 	case "view":
 		return c.ViewAsset(args)
 	case "ls":
-
+		return c.AssetsLs(args)
 	default:
 		return errors.New("unsupported assets command. run assets help for more info.")
 	}

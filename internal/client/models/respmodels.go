@@ -46,6 +46,10 @@ type AssetResponse struct {
 }
 
 type ProjectsLsResponse struct {
-	UserName string `json:"user_name"`
+	UserName string            `json:"user_name"`
 	Projects map[string]string `json:"projects_map"`
+}
+
+type AssetsLsResponse struct {
+	Assets map[string]string `json:"assets_map"`
 }

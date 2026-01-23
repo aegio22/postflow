@@ -47,6 +47,22 @@ func (c *Config) handlerDeleteProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	assets, err := c.DB.GetAssetsByProjectID(ctx, project.ID)
+	if err != nil {
+		log.Printf("error getting assets for project: %s", err)
+		respondError(w, http.StatusBadRequest, "could not get project assets for deletion")
+		return
+	}
+
+	for _, asset := range assets {
+		err = c.S3Client.DeleteObject(ctx, asset.StoragePath)
+		if err != nil {
+			log.Printf("error deleting asset %s:%s", asset.Name, err)
+			respondError(w, http.StatusConflict, "Error deleting asset, project deletion not complete")
+			return
+		}
+	}
+
 	err = c.DB.DeleteProjectByTitle(ctx, projectName)
 	if err != nil {
 		log.Printf("error deleting project: %v", err)

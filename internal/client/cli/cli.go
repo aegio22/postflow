@@ -20,9 +20,9 @@ type cliCommand struct {
 }
 
 type ErrorResponse struct {
-	Error   string `json:"error"`             // Main error message
-	Message string `json:"message,omitempty"` // Optional detailed message
-	Code    string `json:"code,omitempty"`    // Optional error code (e.g., "INVALID_EMAIL")
+	Error   string `json:"error"`
+	Message string `json:"message,omitempty"`
+	Code    string `json:"code,omitempty"`
 }
 
 func (c *Commands) getCommands() map[string]cliCommand {
@@ -90,6 +90,11 @@ func (c *Commands) getCommands() map[string]cliCommand {
 			name:        "assets ls",
 			description: "view all assets and their tags for a given project title",
 			callback:    c.AssetsLs,
+		},
+		"assets delete": {
+			name:        "assets delete",
+			description: "delete an asset from storage and db via a given project title and asset filename",
+			callback:    c.DeleteAsset,
 		},
 	}
 }

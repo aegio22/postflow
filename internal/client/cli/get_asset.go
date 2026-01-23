@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/aegio22/postflow/internal/client/models"
+	"github.com/aegio22/postflow/internal/routes"
 )
 
 func (c *Commands) ViewAsset(args []string) error {
@@ -16,8 +18,7 @@ func (c *Commands) ViewAsset(args []string) error {
 	projectName := args[0]
 	assetName := args[1]
 
-	url := fmt.Sprintf("%s/assets/view?project_name=%s&asset_name=%s",
-		c.httpClient.BaseURL, projectName, assetName)
+	url := c.httpClient.BaseURL + routes.ViewAssets + "?project_name=" + url.QueryEscape(projectName) + "&asset_name=" + url.QueryEscape(assetName)
 
 	resp, err := c.httpClient.Get(url)
 	if err != nil {

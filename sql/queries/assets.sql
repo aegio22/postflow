@@ -39,3 +39,8 @@ ORDER BY a.tags ASC;
 SELECT *
 FROM assets
 WHERE project_id = $1;
+
+
+-- name: DeleteAssetByID :exec
+DELETE FROM assets 
+WHERE id = $1;

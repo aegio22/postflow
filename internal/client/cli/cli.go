@@ -69,6 +69,16 @@ func (c *Commands) getCommands() map[string]cliCommand {
 			description: "delete a project from the database by project title. Will only work if the logged in user is a project admin",
 			callback:    c.DeleteProject,
 		},
+		"projects delmem": {
+			name:        "projects delmem",
+			description: "delete a member from the given project by project title and user email",
+			callback:    c.DeleteAsset,
+		},
+		"projects userlist": {
+			name:        "projects userlist",
+			description: "list all users and their statuses for a project you are a member of",
+			callback:    c.ProjectsUserlist,
+		},
 		//reachable
 		"assets": {
 			name:        "assets",

@@ -39,6 +39,39 @@ func (q *Queries) AddNewProjectUser(ctx context.Context, arg AddNewProjectUserPa
 	return i, err
 }
 
+const getAllProjectUsers = `-- name: GetAllProjectUsers :many
+SELECT id, project_id, user_id, user_status FROM users_projects
+WHERE project_id = $1
+`
+
+func (q *Queries) GetAllProjectUsers(ctx context.Context, projectID uuid.UUID) ([]UsersProject, error) {
+	rows, err := q.db.QueryContext(ctx, getAllProjectUsers, projectID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UsersProject
+	for rows.Next() {
+		var i UsersProject
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProjectID,
+			&i.UserID,
+			&i.UserStatus,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserProjectRelation = `-- name: GetUserProjectRelation :one
 SELECT id, project_id, user_id, user_status FROM users_projects
 WHERE user_id = $1 AND project_id = $2

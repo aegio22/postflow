@@ -19,6 +19,10 @@ func (c *Commands) Projects(args []string) error {
 		return c.LsProjects(args)
 	case "delete":
 		return c.DeleteProject(args)
+	case "delmem":
+		return c.ProjectsDelmem(args)
+	case "userlist":
+		return c.ProjectsUserlist(args)
 	default:
 		return errors.New("unsupported projects command. run help for more info.")
 	}

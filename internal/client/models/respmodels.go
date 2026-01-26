@@ -53,3 +53,7 @@ type ProjectsLsResponse struct {
 type AssetsLsResponse struct {
 	Assets map[string]string `json:"assets_map"`
 }
+
+type ProjectsUserlistResponse struct {
+	Users map[string]string `json:"users_map"`
+}

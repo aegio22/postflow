@@ -100,20 +100,11 @@ Adjust `DATABASE_URL` and S3 settings to match your environment. Once running, t
 To use PostFlow as a global CLI on your machine:
 
 ```bash
-# From repo root
-go build -o postflow .
-
-# Install into a directory on PATH (macOS/Linux)
-sudo mv postflow /usr/local/bin/postflow
-sudo chmod +x /usr/local/bin/postflow
+go install github.com/aegio22/postflow/cmd/postflow@latest
 ```
 
 Verify:
 
-```bash
-which postflow
-postflow help
-```
 
 Point the CLI at your server:
 

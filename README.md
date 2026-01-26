@@ -1,269 +1,251 @@
+```markdown
 # PostFlow
 
-PostFlow is a **Command-Line Post Production Project Management tool** designed to operate at scale for professional media workflows. Built in **Go (Golang)** for performance and reliability, PostFlow focuses on fast bulk uploads/downloads, strict access control, and flexible infrastructure configuration.
+PostFlow is a command‑line tool and Go‑based HTTP API for managing post‑production projects and media assets. It is designed to be fast, usable at scale, and deployable in environments where you control the database, object storage, and server URL.
 
-Think of PostFlow as a **CLI-first alternative to tools like Frame.io**, optimized for engineers, studios, and technical teams who want full control over their storage, permissions, and deployment environment.
+At its core, PostFlow provides:
 
----
+- User registration and authentication using access/refresh tokens.
+- Project creation, membership, and role management (`admin`, `staff`, `viewer`).
+- Asset upload, listing, download, and deletion, backed by PostgreSQL and S3.
+- Bulk project import/export between a local filesystem and remote storage.
 
-## ✨ Key Features
-
-- **CLI-first workflow** – Designed for automation, scripting, and power users  
-- **High-performance Go backend** – Optimized for large file transfers  
-- **Amazon S3–backed storage** – Bring your own bucket, keys, and IAM policies  
-- **Role-based access control** – Admin, Staff, and Viewer permissions  
-- **Scalable architecture** – Designed to run locally, on-prem, or on any hosted server  
-- **Project-level isolation** – Each project manages its own members and assets  
-- **Presigned asset access** – Secure, time-limited S3 download links  
+The same binary runs both the server (`postflow serve`) and the CLI commands (e.g. `postflow projects ls`, `postflow assets upload ...`).
 
 ---
 
-## 🧠 Architecture Overview
+## Components and Data Flow
 
-PostFlow is split into two primary components:
+- **Server**
+  - Go HTTP server.
+  - Uses PostgreSQL for users, projects, membership, and asset metadata.
+  - Uses Amazon S3 for asset files.
+  - Issues presigned S3 URLs so clients can upload/download directly.
 
-1. **CLI Client**
-   - Handles user commands, local file traversal, and API communication
-   - Designed to be scriptable and automation-friendly
+- **CLI**
+  - Single binary (`postflow`) installed on the user’s machine.
+  - Talks only to the server over HTTP/JSON.
+  - Provides commands to:
+    - Register/login users.
+    - Create and manage projects and membership.
+    - Upload and download assets.
+    - Push local directory trees into a project, and clone projects back to disk.
 
-2. **Server**
-   - Exposes HTTP endpoints for authentication, projects, and assets
-   - Can be hosted at any URL of the user’s choosing
-   - Persists metadata to a database
-   - Uploads and downloads files directly to/from Amazon S3
-
-### Storage Model
-
-PostFlow does **not** manage storage for you. Instead:
-
-- You create and own your **Amazon S3 bucket**
-- You define **IAM permissions** appropriate for your workflow
-- You provide PostFlow with your S3 credentials
-- All assets are stored in your bucket, under your control
-
-This design allows for:
-- Full compliance with studio security policies
-- Easy migration or backup strategies
-- Cost control and transparency
+This separation allows you to run the server on any reachable host while developers and operators use the CLI from their own machines.
 
 ---
 
-## 🔐 Authentication & Authorization
+## Prerequisites
 
-PostFlow uses a **refresh token + access token** authentication model:
-
-- **Refresh tokens**
-  - Long-lived
-  - Stored server-side
-  - Used to re-issue access keys when expired
-
-- **Access keys**
-  - Short-lived
-  - Required for all authenticated requests
-  - Automatically rotated when needed
-
-Permissions are enforced at both the **project** and **asset** level.
+- Go 1.22+ (for building the binary).
+- PostgreSQL 13+ (local or remote).
+- An S3 bucket with appropriate permissions.
+- Docker (optional) if you prefer to run the server in a container.
 
 ---
 
-## 🧑‍🤝‍🧑 User Roles
+## Configuration
 
-Each project supports three user roles:
+The server is configured through environment variables.
 
-- **Admin**
-  - Full project control
-  - Add/remove members
-  - Delete projects
-  - Manage all assets
+Typical server environment:
 
-- **Staff**
-  - Upload and delete assets
-  - View and download assets
+```env
+# PostgreSQL
+DATABASE_URL="postgres://postgres:postgres@localhost:5432/postflow?sslmode=disable"
 
-- **Viewer**
-  - View and download assets only
-  - No upload or deletion permissions
+# HTTP listen address for the server
+PORT=":8080"
 
----
+# S3 / AWS
+AWS_REGION="us-east-1"
+S3_BUCKET="your-postflow-bucket-name"
+AWS_ACCESS_KEY_ID="YOUR_AWS_ACCESS_KEY_ID"
+AWS_SECRET_ACCESS_KEY="YOUR_AWS_SECRET_ACCESS_KEY"
+```
 
-## 📦 Commands
+The CLI needs to know where the server is running:
 
-Below is a complete list of PostFlow CLI commands and their behavior.
+```env
+# Base URL used by the CLI to reach the server
+BASE_URL="http://localhost:8080"
+```
 
----
-
-### Authentication
-
-#### `Register <username> <user_email> <password>`
-
-Create a new user account.
-
-- Creates a new user in the database
-- Issues a **refresh token** and **access key**
-- Automatically logs the user in
+You can keep these in a local `.env` file (not committed) and export them via your shell or a tool like `direnv`.
 
 ---
 
-#### `Login <email> <password>`
+## Running the Server (local)
 
-Authenticate an existing user.
+From the repository root:
 
-- Validates credentials
-- Checks refresh token expiration
-- Issues a new refresh token if expired
-- Issues a new access key
+1. Ensure your `DATABASE_URL`, `AWS_REGION`, `S3_BUCKET`, and AWS credentials are exported.
+2. Build and start the server:
 
----
+```bash
+go build -o postflow .
+./postflow serve
+```
 
-#### `Help`
-
-Displays an overview of all available PostFlow commands.
-
----
-
-## 📁 Projects
-
-#### `Projects create <project_name> <optional_description>`
-
-Create a new project.
-
-- Registers the project in the database
-- The creator is automatically assigned **Admin** status
+The server will listen on `PORT` (default `:8080`), for example at `http://localhost:8080`.
 
 ---
 
-#### `Projects addmem <project_name> <user_email> <user_status>`
+## Running the Server (Docker)
 
-Add a user to a project.
+The repo includes a `Dockerfile` that builds a minimal server image.
 
-- User status must be one of:
-  - `admin`
-  - `staff`
-  - `viewer`
+Example:
 
----
+```bash
+# Build image
+docker build -t postflow-server .
 
-#### `Projects ls`
+# Run container
+docker run --rm \
+  -e DATABASE_URL="postgres://postgres:postgres@host.docker.internal:5432/postflow?sslmode=disable" \
+  -e AWS_REGION="us-east-1" \
+  -e S3_BUCKET="your-postflow-bucket-name" \
+  -e AWS_ACCESS_KEY_ID="YOUR_AWS_ACCESS_KEY_ID" \
+  -e AWS_SECRET_ACCESS_KEY="YOUR_AWS_SECRET_ACCESS_KEY" \
+  -e PORT=":8080" \
+  -p 8080:8080 \
+  postflow-server
+```
 
-List all projects the currently logged-in user is a member of.
-
----
-
-#### `Projects userlist <project_name>`
-
-List all users associated with a project.
-
-- Displays username and email for each member
-
----
-
-#### `Projects delete <project_name>`
-
-Delete a project and all related data.
-
-- Admin-only
-- Uses **ON DELETE CASCADE** to remove:
-  - Project members
-  - Assets
-  - Metadata
-- Does **not** delete raw files from S3 unless explicitly configured to do so
+Adjust `DATABASE_URL` and S3 settings to match your environment. Once running, the server is reachable at `http://localhost:8080` (or any host/port you configure).
 
 ---
 
-#### `Project delmem <project_name> <user_email>`
+## Installing the CLI
 
-Remove a user from a project.
+To use PostFlow as a global CLI on your machine:
 
-- Admin-only
-- If removing another admin:
-  - Only the **original project creator** may perform the action
+```bash
+# From repo root
+go build -o postflow .
 
----
+# Install into a directory on PATH (macOS/Linux)
+sudo mv postflow /usr/local/bin/postflow
+sudo chmod +x /usr/local/bin/postflow
+```
 
-#### `Projects clone <project_name> <destination_directory>`
+Verify:
 
-Clone a project to the local filesystem.
+```bash
+which postflow
+postflow help
+```
 
-- Downloads all assets
-- Organizes files into folders based on their tag  
-  (e.g. `Audio/`, `Rough_Cuts/`)
+Point the CLI at your server:
 
----
+```bash
+export BASE_URL="http://localhost:8080"
+```
 
-#### `Projects push <source_directory> <project_name> <optional_description>`
+You can now run commands from any directory, for example:
 
-Push a local directory into PostFlow.
-
-- Creates asset records in the database
-- Uploads all files to S3
-- Uses local folder names as asset tags
-
----
-
-## 🎞 Assets
-
-#### `Assets ls <project_name>`
-
-List all assets in a project.
-
-- Verifies project membership before displaying results
+```bash
+postflow register <username> <email> <password>
+postflow login <email> <password>
+postflow projects create <project_name> [description]
+```
 
 ---
 
-#### `Assets upload <project_name> <asset_filepath> <asset_tag>`
+## Core CLI Functionality
 
-Upload an asset to a project.
+The CLI surface is intentionally compact and focused on common workflows.
 
-- Copies the file to S3
-- Stores metadata and tags in the database
-- Requires **Staff** or **Admin** permissions
+High‑level capabilities include:
 
----
+- **User and session management**
+  - Register and login users.
+  - Manage access tokens automatically on the client.
 
-#### `Assets view <project_name> <asset_name>`
+- **Projects**
+  - Create projects with optional descriptions.
+  - List projects for the current user.
+  - Add and remove members with role control (`admin`, `staff`, `viewer`).
+  - Inspect project membership.
+  - Delete projects and cascade related metadata and assets.
 
-View/download an asset.
+- **Assets**
+  - Upload assets to a project:
+    - Metadata stored in PostgreSQL.
+    - File content stored in S3 under a structured key.
+  - List assets for a project.
+  - Obtain presigned download URLs for assets.
+  - Delete assets from both the database and S3.
 
-- Verifies project membership
-- Returns a **presigned S3 URL**
-- URL expires automatically for security
+- **Bulk operations**
+  - `projects push`:
+    - Create a project.
+    - Walk a local directory tree.
+    - Use the innermost folder name as each file’s tag.
+    - Upload all files to S3 and create asset records concurrently.
+  - `projects clone`:
+    - Query all assets in a project.
+    - Reconstruct a directory tree locally:
+      - `<destination>/<project_name>/<tag>/<asset_name>`
+    - Download all assets from S3 in parallel using presigned URLs.
 
----
+For detailed command syntax and options, use the built‑in help:
 
-#### `Assets delete <project_name> <asset_name>`
-
-Delete an asset from a project.
-
-- Requires **Staff** or **Admin** permissions
-- Removes metadata and deletes the file from S3
-
----
-
-## 🚀 Use Cases
-
-- Post-production studios managing large audio/video assets
-- Technical teams needing automation-friendly project management
-- Secure client review workflows without web UIs
-- Internal tooling for media-heavy pipelines
-- Backend-focused portfolio projects demonstrating real-world architecture
-
----
-
-## 🛠 Tech Stack
-
-- **Language:** Go (Golang)
-- **Storage:** Amazon S3
-- **Authentication:** Refresh tokens + access keys
-- **Interface:** Command Line Interface (CLI)
-- **Architecture:** Client/Server, API-driven
+```bash
+postflow help
+postflow help projects
+postflow help assets
+```
 
 ---
 
-## 📄 License
+## Typical Usage Flow
 
-This project is provided as-is for educational and portfolio purposes.  
-Refer to the license file in this repository for usage details.
+A typical usage sequence looks like this:
 
----
+1. Start the server (locally or via Docker).
+2. Configure the CLI with `BASE_URL`.
+3. Register and log in:
+
+   ```bash
+   postflow register <username> <email> <password>
+   postflow login <email> <password>
+   ```
+
+4. Create a project and add collaborators:
+
+   ```bash
+   postflow projects create my_project "Rough cut and final assets"
+   postflow projects addmem my_project collaborator@example.com staff
+   ```
+
+5. Upload assets:
+
+   ```bash
+   postflow assets upload my_project /path/to/file.mov "video"
+   postflow assets ls my_project
+   ```
+
+6. Bulk import or export:
+
+   - Import a local folder tree:
+
+     ```bash
+     postflow projects push my_project /path/to/local/folder
+     ```
+
+   - Clone a remote project locally:
+
+     ```bash
+     postflow projects clone my_project /path/to/destination
+     ```
+
+7. Clean up when needed:
+
+   ```bash
+   postflow assets delete my_project file.mov
+   postflow projects delete my_project
+   ```
 
 

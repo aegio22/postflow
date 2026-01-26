@@ -37,8 +37,8 @@ This separation allows you to run the server on any reachable host while develop
 
 ## Prerequisites
 
-- Go 1.22+ (for building the binary).
-- PostgreSQL 13+ (local or remote).
+- Go 1.22+ 
+- PostgreSQL 13+ 
 - An S3 bucket with appropriate permissions.
 - Docker (optional) if you prefer to run the server in a container.
 
@@ -47,31 +47,7 @@ This separation allows you to run the server on any reachable host while develop
 ## Configuration
 
 The server is configured through environment variables.
-
-Typical server environment:
-
-```env
-# PostgreSQL
-DATABASE_URL="postgres://postgres:postgres@localhost:5432/postflow?sslmode=disable"
-
-# HTTP listen address for the server
-PORT=":8080"
-
-# S3 / AWS
-AWS_REGION="us-east-1"
-S3_BUCKET="your-postflow-bucket-name"
-AWS_ACCESS_KEY_ID="YOUR_AWS_ACCESS_KEY_ID"
-AWS_SECRET_ACCESS_KEY="YOUR_AWS_SECRET_ACCESS_KEY"
-
-
-The CLI needs to know where the server is running:
-
-```env
-# Base URL used by the CLI to reach the server
-BASE_URL="http://localhost:8080"
-```
-
-You can keep these in a local `.env` file (not committed) and export them via your shell or a tool like `direnv`.
+Check the example env file for the expected env formatting
 
 ---
 

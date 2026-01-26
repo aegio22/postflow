@@ -38,6 +38,11 @@ func (c *Commands) getCommands() map[string]cliCommand {
 			description: "login with email and password",
 			callback:    c.Login,
 		},
+		"help": {
+			name:        "help",
+			description: "get list of valid commands and their arguments",
+			callback:    c.Help,
+		},
 		"serve": {
 			name:        "serve",
 			description: "initialize the postflow server",

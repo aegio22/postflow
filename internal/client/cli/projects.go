@@ -23,6 +23,8 @@ func (c *Commands) Projects(args []string) error {
 		return c.ProjectsDelmem(args)
 	case "userlist":
 		return c.ProjectsUserlist(args)
+	case "push":
+		return c.ProjectsPush(args)
 	default:
 		return errors.New("unsupported projects command. run help for more info.")
 	}

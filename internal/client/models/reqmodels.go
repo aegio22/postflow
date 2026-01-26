@@ -18,8 +18,13 @@ type UserInfo struct {
 }
 
 type AssetRequest struct {
-	ProjectName string `json:"project_id"`
+	ProjectName string `json:"project_name"`
 	AssetName   string `json:"asset_name"`
 	Filepath    string `json:"filepath"`
 	Tag         string `json:"tag"`
+}
+
+type ProjectsCloneRequest struct {
+	ProjectName   string `json:"project_name"`
+	DirectoryPath string `json:"dir_path"`
 }

@@ -3,6 +3,7 @@ package routes
 const Login = "/user/login"
 const SignUp = "/user/signup"
 const Projects = "/projects"
+const ProjectsClone = "/projects/clone"
 const ProjectMembers = "/projects/members"
 const Assets = "/projects/{project_name}/assets"
 const ViewAssets = "/assets/view"

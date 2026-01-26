@@ -57,3 +57,8 @@ type AssetsLsResponse struct {
 type ProjectsUserlistResponse struct {
 	Users map[string]string `json:"users_map"`
 }
+
+type CloneResponse struct {
+	Project        ProjectResponse `json:"project"`
+	AssetResponses []AssetResponse `json:"asset_responses"`
+}

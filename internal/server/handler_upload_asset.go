@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,6 +11,7 @@ import (
 	"github.com/aegio22/postflow/internal/client/auth"
 	"github.com/aegio22/postflow/internal/client/models"
 	"github.com/aegio22/postflow/internal/database"
+	"github.com/google/uuid"
 )
 
 func (c *Config) handlerUploadAsset(w http.ResponseWriter, r *http.Request) {
@@ -53,44 +55,68 @@ func (c *Config) handlerUploadAsset(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusUnauthorized, "must be a staff or admin user to upload to this project")
 		return
 	}
-	asset, err := c.DB.CreateAsset(ctx, database.CreateAssetParams{
-		ProjectID:   projectId.ID,
-		Name:        assetInfo.AssetName,
-		StoragePath: "",
-		Tags:        assetInfo.Tag,
-		CreatedBy:   userId,
-	})
+	resp, err := c.createAssetWithUploadURL(
+		ctx,
+		projectId.ID,
+		userId,
+		assetInfo.AssetName,
+		assetInfo.Tag,
+		assetInfo.Filepath,
+	)
 	if err != nil {
-		log.Printf("error adding asset to db: %v", err)
+		log.Printf("error creating asset + upload URL: %v", err)
 		respondError(w, http.StatusConflict, "error adding asset to database")
 		return
 	}
 
-	//Generate S3 key (where file will be stored)
+	respondJSON(w, http.StatusCreated, resp)
+
+}
+
+func (c *Config) createAssetWithUploadURL(
+	ctx context.Context,
+	projectID uuid.UUID,
+	userID uuid.UUID,
+	assetName string,
+	tag string,
+	filepath string,
+) (models.AssetResponse, error) {
+	// 1) Insert asset row
+	asset, err := c.DB.CreateAsset(ctx, database.CreateAssetParams{
+		ProjectID:   projectID,
+		Name:        assetName,
+		StoragePath: "",
+		Tags:        tag,
+		CreatedBy:   userID,
+	})
+	if err != nil {
+		return models.AssetResponse{}, fmt.Errorf("create asset: %w", err)
+	}
+
 	s3Key := fmt.Sprintf("projects/%s/assets/%s/%s",
 		asset.ProjectID.String(),
 		asset.ID.String(),
-		assetInfo.Filepath,
+		filepath,
 	)
 
-	//Generate presigned upload URL (client will PUT file here)
-	uploadURL, err := c.S3Client.PresignUpload(ctx, s3Key, 15*time.Minute)
+	const ttl = 15 * time.Minute
+	uploadURL, err := c.S3Client.PresignUpload(ctx, s3Key, ttl)
 	if err != nil {
-		log.Printf("failed to generate upload URL: %v", err)
-		respondError(w, http.StatusInternalServerError, "failed to generate upload URL")
-		return
+		return models.AssetResponse{}, fmt.Errorf("presign upload: %w", err)
 	}
-	err = c.DB.UpdateAssetStoragePath(ctx, database.UpdateAssetStoragePathParams{ID: asset.ID, StoragePath: s3Key})
-	if err != nil {
-		log.Printf("failed to update storage path: %v", err)
-		respondError(w, http.StatusInternalServerError, "failed to update storage path")
+
+	if err := c.DB.UpdateAssetStoragePath(ctx, database.UpdateAssetStoragePathParams{
+		ID:          asset.ID,
+		StoragePath: s3Key,
+	}); err != nil {
+		return models.AssetResponse{}, fmt.Errorf("update storage path: %w", err)
 	}
-	responseBody := models.AssetResponse{
+
+	resp := models.AssetResponse{
 		AssetID:   asset.ID.String(),
 		UploadURL: uploadURL,
 		S3Key:     s3Key,
-		ExpiresIn: 900, // 15 minutes
+		ExpiresIn: int(ttl.Seconds()),
 	}
-	respondJSON(w, http.StatusCreated, responseBody)
-
+	return resp, nil
 }

@@ -1,7 +1,9 @@
 
 # PostFlow
 
-PostFlow is a command‑line tool and Go‑based HTTP API for managing post‑production projects and media assets. It is designed to be fast, usable at scale, and deployable in environments where you control the database, object storage, and server URL.
+PostFlow is a CLI-first post-production project management system built in Go.
+It provides a fast HTTP API and command-line interface for organizing media assets, versions, and collaborators—designed to run on infrastructure you control, with your own database, object storage, and deployment environment.
+> *Think: Frame.io-style asset management, but CLI-first, fully configurable and self-hosted.*
 
 At its core, PostFlow provides:
 

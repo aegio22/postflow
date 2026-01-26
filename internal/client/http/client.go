@@ -17,7 +17,7 @@ type HttpClient struct {
 func CreateHttpClient() *HttpClient {
 	baseURL := os.Getenv("BASE_URL")
 	if baseURL == "" {
-		fmt.Fprint(os.Stderr, "No base url env variable found")
+		fmt.Fprint(os.Stderr, "No base url env variable found\n")
 		return &HttpClient{}
 	}
 	client := &HttpClient{

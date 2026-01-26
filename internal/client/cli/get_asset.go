@@ -18,25 +18,10 @@ func (c *Commands) ViewAsset(args []string) error {
 	projectName := args[0]
 	assetName := args[1]
 
-	url := c.httpClient.BaseURL + routes.ViewAssets + "?project_name=" + url.QueryEscape(projectName) + "&asset_name=" + url.QueryEscape(assetName)
-
-	resp, err := c.httpClient.Get(url)
+	responseBody, err := c.getDownloadUrl(projectName, assetName)
 	if err != nil {
-		return fmt.Errorf("request failed: %s", err)
+		return err
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		var errResp ErrorResponse
-		json.NewDecoder(resp.Body).Decode(&errResp)
-		return fmt.Errorf("asset view failed: %s", errResp.Error)
-	}
-
-	var responseBody models.AssetResponse
-	if err := json.NewDecoder(resp.Body).Decode(&responseBody); err != nil {
-		return fmt.Errorf("error decoding response body: %s", err)
-	}
-
 	// NOW compute from the decoded struct
 	downloadURL := responseBody.UploadURL
 	expiresMinutes := responseBody.ExpiresIn / 60
@@ -46,4 +31,25 @@ func (c *Commands) ViewAsset(args []string) error {
 	fmt.Println(downloadURL)
 
 	return nil
+}
+func (c *Commands) getDownloadUrl(projectName, assetName string) (models.AssetResponse, error) {
+	url := c.httpClient.BaseURL + routes.ViewAssets + "?project_name=" + url.QueryEscape(projectName) + "&asset_name=" + url.QueryEscape(assetName)
+
+	resp, err := c.httpClient.Get(url)
+	if err != nil {
+		return models.AssetResponse{}, fmt.Errorf("request failed: %s", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		var errResp ErrorResponse
+		json.NewDecoder(resp.Body).Decode(&errResp)
+		return models.AssetResponse{}, fmt.Errorf("asset view failed: %s", errResp.Error)
+	}
+
+	var responseBody models.AssetResponse
+	if err := json.NewDecoder(resp.Body).Decode(&responseBody); err != nil {
+		return models.AssetResponse{}, fmt.Errorf("error decoding response body: %s", err)
+	}
+	return responseBody, nil
 }

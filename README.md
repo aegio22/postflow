@@ -100,7 +100,7 @@ Adjust `DATABASE_URL` and S3 settings to match your environment. Once running, t
 To use PostFlow as a global CLI on your machine:
 
 ```bash
-go install github.com/aegio22/postflow/cmd/postflow@latest
+go install github.com/aegio22/postflow@latest
 ```
 
 Verify:

@@ -46,6 +46,33 @@ This separation allows you to run the server on any reachable host while develop
 
 ---
 
+## Installing the CLI
+
+To use PostFlow as a global CLI on your machine:
+
+```bash
+go install github.com/aegio22/postflow@latest
+```
+
+Verify:
+
+
+Point the CLI at your server:
+
+```bash
+export BASE_URL="http://localhost:8080"
+```
+
+You can now run commands from any directory, for example:
+
+```bash
+postflow register <username> <email> <password>
+postflow login <email> <password>
+postflow projects create <project_name> [description]
+```
+
+---
+
 ## Configuration
 
 The server is configured through environment variables.
@@ -92,33 +119,6 @@ docker run --rm \
 ```
 
 Adjust `DATABASE_URL` and S3 settings to match your environment. Once running, the server is reachable at `http://localhost:8080` (or any host/port you configure).
-
----
-
-## Installing the CLI
-
-To use PostFlow as a global CLI on your machine:
-
-```bash
-go install github.com/aegio22/postflow@latest
-```
-
-Verify:
-
-
-Point the CLI at your server:
-
-```bash
-export BASE_URL="http://localhost:8080"
-```
-
-You can now run commands from any directory, for example:
-
-```bash
-postflow register <username> <email> <password>
-postflow login <email> <password>
-postflow projects create <project_name> [description]
-```
 
 ---
 

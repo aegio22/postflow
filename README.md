@@ -1,4 +1,4 @@
-```markdown
+
 # PostFlow
 
 PostFlow is a command‑line tool and Go‑based HTTP API for managing post‑production projects and media assets. It is designed to be fast, usable at scale, and deployable in environments where you control the database, object storage, and server URL.
@@ -62,7 +62,7 @@ AWS_REGION="us-east-1"
 S3_BUCKET="your-postflow-bucket-name"
 AWS_ACCESS_KEY_ID="YOUR_AWS_ACCESS_KEY_ID"
 AWS_SECRET_ACCESS_KEY="YOUR_AWS_SECRET_ACCESS_KEY"
-```
+
 
 The CLI needs to know where the server is running:
 

@@ -168,13 +168,8 @@ High‑level capabilities include:
       - `<destination>/<project_name>/<tag>/<asset_name>`
     - Download all assets from S3 in parallel using presigned URLs.
 
-For detailed command syntax and options, use the built‑in help:
 
-```bash
-postflow help
-postflow help projects
-postflow help assets
-```
+
 
 ---
 

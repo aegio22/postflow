@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 type asset struct {
@@ -38,10 +39,40 @@ func (c *Commands) ProjectsPush(args []string) error {
 	if err = filepath.WalkDir(sourcePath, helperParseLocalFiles(sourcePath, &assets)); err != nil {
 		return fmt.Errorf("error walking project directory : %s", err)
 	}
+
+	maxWorkers := 5
+	jobs := make(chan asset)
+	var wg sync.WaitGroup
+	var firstErrMu sync.Mutex
+	var firstErr error
+
+	// start workers
+	for i := 0; i < maxWorkers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for a := range jobs {
+				if err := c.UploadAsset([]string{projectName, a.Filepath, a.Tag}); err != nil {
+					firstErrMu.Lock()
+					if firstErr == nil {
+						firstErr = err
+					}
+					firstErrMu.Unlock()
+					fmt.Printf("upload failed for %s: %v\n", a.Filepath, err)
+				}
+			}
+		}()
+	}
+
 	for _, a := range assets {
-		if err := c.UploadAsset([]string{projectName, a.Filepath, a.Tag}); err != nil {
-			return err
-		}
+		jobs <- a
+	}
+	close(jobs)
+
+	wg.Wait()
+
+	if firstErr != nil {
+		return firstErr
 	}
 
 	return nil

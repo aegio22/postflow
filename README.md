@@ -12,7 +12,6 @@ At its core, PostFlow provides:
 - Asset upload, listing, download, and deletion, backed by PostgreSQL and S3.
 - Bulk project import/export between a local filesystem and remote storage.
 
-The same binary runs both the server (`postflow serve`) and the CLI commands (e.g. `postflow projects ls`, `postflow assets upload ...`).
 
 ---
 
@@ -54,13 +53,30 @@ To use PostFlow as a global CLI on your machine:
 go install github.com/aegio22/postflow@latest
 ```
 
-Verify:
+Create a `.env` file in the project root with at least:
 
+```env
+# Server / CLI configuration
+BASE_URL="http://localhost:8080"
 
-Point the CLI at your server:
+# Database
+DATABASE_URL="postgres://postgres:postgres@localhost:5432/postflow?sslmode=disable"
+
+# S3 / AWS
+AWS_REGION="us-east-1"
+S3_BUCKET="your-postflow-bucket-name"
+AWS_ACCESS_KEY_ID="YOUR_AWS_ACCESS_KEY_ID"
+AWS_SECRET_ACCESS_KEY="YOUR_AWS_SECRET_ACCESS_KEY"
+
+# Server listen address
+PORT=":8080"
+
+Then export all variables into your shell:
 
 ```bash
-export BASE_URL="http://localhost:8080"
+set -a
+source .env
+set +a
 ```
 
 You can now run commands from any directory, for example:

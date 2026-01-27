@@ -70,6 +70,7 @@ AWS_SECRET_ACCESS_KEY="YOUR_AWS_SECRET_ACCESS_KEY"
 
 # Server listen address
 PORT=":8080"
+```
 
 Then export all variables into your shell:
 

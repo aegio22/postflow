@@ -69,3 +69,19 @@ func (s *S3Client) DeleteObject(ctx context.Context, key string) error {
 	})
 	return err
 }
+
+
+func (s *S3Client) DeleteObjects(ctx context.Context, keys []string) error {
+    var objects []types.ObjectIdentifier
+    for _, k := range keys {
+        objects = append(objects, types.ObjectIdentifier{Key: aws.String(k)})
+    }
+
+    _, err := s.client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
+        Bucket: aws.String(s.BucketName),
+        Delete: &types.Delete{
+            Objects: objects,
+        },
+    })
+    return err
+}

@@ -55,14 +55,24 @@ func (c *Config) handlerDeleteProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+// 1. Initialize a slice of strings to hold the keys
+	keys := make([]string, 0, len(assets))
+
+	// 2. Loop through the assets to collect their storage paths
 	for _, asset := range assets {
-		err = c.S3Client.DeleteObject(ctx, asset.StoragePath)
+		keys = append(keys, asset.StoragePath)
+	}
+
+	// 3. Send the entire slice to your S3 client once
+	if len(keys) > 0 {
+		err = c.S3Client.DeleteObjects(ctx, keys)
 		if err != nil {
-			log.Printf("error deleting asset %s:%s", asset.Name, err)
-			respondError(w, http.StatusConflict, "Error deleting asset, project deletion not complete")
+			log.Printf("error batch deleting assets: %v", err)
+			respondError(w, http.StatusConflict, "Error deleting assets, project deletion not complete")
 			return
 		}
 	}
+	
 
 	err = c.DB.DeleteProjectByTitle(ctx, projectName)
 	if err != nil {

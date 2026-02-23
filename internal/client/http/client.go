@@ -22,7 +22,7 @@ func CreateHttpClient() *HttpClient {
 	}
 	client := &HttpClient{
 		Client: &http.Client{
-			Timeout: 20 * time.Second,
+			Timeout: 60 * time.Second,
 		},
 		BaseURL: baseURL,
 	}

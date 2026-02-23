@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 type S3Client struct {
@@ -72,16 +73,19 @@ func (s *S3Client) DeleteObject(ctx context.Context, key string) error {
 
 
 func (s *S3Client) DeleteObjects(ctx context.Context, keys []string) error {
-    var objects []types.ObjectIdentifier
-    for _, k := range keys {
-        objects = append(objects, types.ObjectIdentifier{Key: aws.String(k)})
-    }
+	var objects []types.ObjectIdentifier
+	for _, k := range keys {
+		objects = append(objects, types.ObjectIdentifier{
+			Key: aws.String(k),
+		})
+	}
 
-    _, err := s.client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
-        Bucket: aws.String(s.BucketName),
-        Delete: &types.Delete{
-            Objects: objects,
-        },
-    })
-    return err
+	_, err := s.Client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
+		Bucket: aws.String(s.Bucket), // Changed from BucketName to Bucket
+		Delete: &types.Delete{
+			Objects: objects,
+			Quiet:   aws.Bool(true),
+		},
+	})
+	return err
 }

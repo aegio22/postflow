@@ -29,36 +29,35 @@ func (c *Commands) ProjectsPush(args []string) error {
 
 	var projectArgs []string
 	projectArgs = append(projectArgs, projectName)
-	//project creation
 	err = c.CreateProject(projectArgs)
 	if err != nil {
 		return err
 	}
-	//asset uploads, local parsing
+
 	var assets []asset
 	if err = filepath.WalkDir(sourcePath, helperParseLocalFiles(sourcePath, &assets)); err != nil {
 		return fmt.Errorf("error walking project directory : %s", err)
 	}
 
 	maxWorkers := 5
-	jobs := make(chan asset)
+	jobs := make(chan asset, len(assets))
 	var wg sync.WaitGroup
 	var firstErrMu sync.Mutex
 	var firstErr error
 
-	// start workers
 	for i := 0; i < maxWorkers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for a := range jobs {
+				fmt.Printf("Pushing %s...\n", a.AssetName)
 				if err := c.UploadAsset([]string{projectName, a.Filepath, a.Tag}); err != nil {
 					firstErrMu.Lock()
 					if firstErr == nil {
 						firstErr = err
 					}
 					firstErrMu.Unlock()
-					fmt.Printf("upload failed for %s: %v\n", a.Filepath, err)
+					fmt.Printf("Upload failed for %s: %v\n", a.Filepath, err)
 				}
 			}
 		}()
@@ -76,7 +75,6 @@ func (c *Commands) ProjectsPush(args []string) error {
 	}
 
 	return nil
-
 }
 
 func helperParseLocalFiles(root string, assets *[]asset) fs.WalkDirFunc {

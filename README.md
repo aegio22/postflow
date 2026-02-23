@@ -44,6 +44,15 @@ This separation allows you to run the server on any reachable host while develop
 - Docker (optional) if you prefer to run the server in a container.
 
 ---
+## S3 IAM Permissions
+Your AWS IAM user or role requires a policy with the following permissions for the configured `S3_BUCKET`:
+
+* `s3:PutObject`: To upload assets.
+* `s3:GetObject`: To download assets.
+* `s3:DeleteObject`: To remove assets.
+* `s3:ListBucket`: To verify asset existence.
+
+**Note on CORS:** If using the CLI from a browser-based environment or specific network configurations, ensure your S3 bucket has a CORS policy allowing `PUT` and `GET` methods.
 
 ## Installing the CLI
 

@@ -5,30 +5,29 @@ RUN apk add --no-cache ca-certificates git
 
 WORKDIR /app
 
-# Cache deps
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source
 COPY . .
 
-# Build CLI+server binary
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o postflow .
+# ADDED: -ldflags="-s -w" to shrink the binary size since SQL is now inside
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o postflow .
 
 # ---- Runtime stage ----
 FROM alpine:3.19
 
 RUN apk add --no-cache ca-certificates && update-ca-certificates
 
+# SECURITY: Best practice - don't run as root
+RUN adduser -D postuser
+USER postuser
+
 WORKDIR /app
 
 COPY --from=builder /app/postflow /app/postflow
 
-# Expose server port (matches default :8080)
 EXPOSE 8080
-
-# Default PORT; override at runtime if needed
 ENV PORT=:8080
 
-# Entrypoint: run server via CLI subcommand
+# The binary now carries the migrations, so this just works!
 CMD ["/app/postflow", "serve"]

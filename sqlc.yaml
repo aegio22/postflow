@@ -1,7 +1,7 @@
 version: "2"
 sql:
-  - schema: "sql/schema"
-    queries: "sql/queries"
+  - schema: "internal/storage/sql/schema"
+    queries: "internal/storage/sql/queries"
     engine: "postgresql"
     gen:
       go:

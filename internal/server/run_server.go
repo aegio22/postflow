@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"io/fs"
-	"github.com/aegio22/postflow" // This pulls in the root embed.go
-	"github.com/pressly/goose/v3"
+
+	"github.com/aegio22/postflow/internal/storage"
 	_ "github.com/lib/pq" // Required for the postgres driver
+	"github.com/pressly/goose/v3"
 )
 
 func Run(args []string) error {
@@ -33,7 +33,7 @@ func Run(args []string) error {
 	if err := server.ListenAndServe(); err != nil {
 		return fmt.Errorf("server crashed: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -45,22 +45,18 @@ func applyMigrations(dbURL string) error {
 	defer db.Close()
 
 	// Tell goose to use the filesystem embedded in our binary
-	goose.SetBaseFS(postflow.MigrationsFS)
+	goose.SetBaseFS(storage.MigrationsFS)
 
 	if err := goose.SetDialect("postgres"); err != nil {
 		return err
 	}
 
 	log.Println("Checking database schema...")
-	// Wrap the FS so "sql/schema" is the root
-	subFS, err := fs.Sub(postflow.MigrationsFS, "sql/schema")
-	if err != nil {
+
+	if err := goose.Up(db, "sql/schema"); err != nil {
 		return err
 	}
-	if err := goose.Up(db, "."); err != nil { // Now use "."
-		return err
-	}
-	
+
 	log.Println("Database is ready.")
 	return nil
 }

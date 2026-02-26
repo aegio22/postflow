@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-
+	"io/fs"
 	"github.com/aegio22/postflow" // This pulls in the root embed.go
 	"github.com/pressly/goose/v3"
 	_ "github.com/lib/pq" // Required for the postgres driver
@@ -52,9 +52,12 @@ func applyMigrations(dbURL string) error {
 	}
 
 	log.Println("Checking database schema...")
-	
-	// 'sql/schema' is the path inside the root-level embed.go
-	if err := goose.Up(db, "sql/schema"); err != nil {
+	// Wrap the FS so "sql/schema" is the root
+	subFS, err := fs.Sub(postflow.MigrationsFS, "sql/schema")
+	if err != nil {
+		return err
+	}
+	if err := goose.Up(db, "."); err != nil { // Now use "."
 		return err
 	}
 	

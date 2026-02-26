@@ -40,14 +40,14 @@ func (c *Commands) SignUp(args []string) error {
 		return fmt.Errorf("signup failed with status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 
-	var signupResp models.SignUpResponse
+	var signupResp models.DBUserResponse
 	if err := json.NewDecoder(resp.Body).Decode(&signupResp); err != nil {
 		return fmt.Errorf("failed to decode response: %v", err)
 	}
 
-	c.httpClient.SetSession(signupResp.Token)
+	c.httpClient.SetSession(signupResp.AccessToken)
 	fmt.Printf("Account created successfully!\n")
-	fmt.Printf("User ID: %s\n", signupResp.UserID)
+	fmt.Printf("User ID: %s\n", signupResp.ID)
 	fmt.Printf("Logged in automatically\n")
 	return nil
 

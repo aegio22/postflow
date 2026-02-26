@@ -21,16 +21,22 @@ type SignUpResponse struct {
 }
 
 type LoginResponse struct {
-	AccessToken string `json:"token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type DBUserResponse struct {
-	ID          uuid.UUID `json:"id"`
-	Username    string    `json:"username"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Email       string    `json:"email"`
-	AccessToken string    `json:"access_token"`
+	ID           uuid.UUID `json:"id"`
+	Username     string    `json:"username"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Email        string    `json:"email"`
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
+}
+
+type RefreshResponse struct {
+	AccessToken string `json:"access_token"`
 }
 
 type ProjectMemberAddResponse struct {

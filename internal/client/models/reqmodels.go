@@ -17,6 +17,10 @@ type UserInfo struct {
 	Password string `json:"password"`
 }
 
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
 type AssetRequest struct {
 	ProjectName string `json:"project_name"`
 	AssetName   string `json:"asset_name"`

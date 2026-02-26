@@ -45,7 +45,8 @@ func (c *Commands) Login(args []string) error {
 		return fmt.Errorf("login failed with status %d", resp.StatusCode)
 	}
 	var loginResponse struct {
-		AccessToken string `json:"token"`
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
 		return fmt.Errorf("failed to decode response: %v", err)

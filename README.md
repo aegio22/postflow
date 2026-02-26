@@ -71,6 +71,9 @@ BASE_URL="http://localhost:8080"
 # Database
 DATABASE_URL="postgres://postgres:postgres@localhost:5432/postflow?sslmode=disable"
 
+# Auth
+JWT_SECRET="your-static-signing-secret"
+
 # S3 / AWS
 AWS_REGION="us-east-1"
 S3_BUCKET="your-postflow-bucket-name"
@@ -135,6 +138,7 @@ docker build -t postflow-server .
 # Run container
 docker run --rm \
   -e DATABASE_URL="postgres://postgres:postgres@host.docker.internal:5432/postflow?sslmode=disable" \
+  -e JWT_SECRET="your-static-signing-secret" \
   -e AWS_REGION="us-east-1" \
   -e S3_BUCKET="your-postflow-bucket-name" \
   -e AWS_ACCESS_KEY_ID="YOUR_AWS_ACCESS_KEY_ID" \

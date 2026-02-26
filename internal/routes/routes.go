@@ -2,6 +2,7 @@ package routes
 
 const Login = "/user/login"
 const SignUp = "/user/signup"
+const Refresh = "/user/refresh"
 const Projects = "/projects"
 const ProjectsClone = "/projects/clone"
 const ProjectMembers = "/projects/members"

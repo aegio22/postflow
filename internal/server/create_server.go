@@ -19,6 +19,7 @@ func CreateServer() (*http.Server, error) {
 	//initialize core endpoints and handlers
 	r.HandleFunc("POST "+routes.SignUp, cfg.handlerSignUp)
 	r.HandleFunc("POST "+routes.Login, cfg.handlerLogin)
+	r.HandleFunc("POST "+routes.Refresh, cfg.handlerRefresh)
 	r.HandleFunc("POST "+routes.Projects, cfg.handlerCreateProject)
 	r.HandleFunc("POST "+routes.ProjectMembers, cfg.handlerAddProjectMember)
 	r.HandleFunc("POST "+routes.Assets, cfg.handlerUploadAsset)

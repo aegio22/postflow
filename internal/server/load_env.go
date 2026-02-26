@@ -19,6 +19,11 @@ func LoadEnv() (*Env, error) {
 		return nil, errors.New("DATABASE_URL not set")
 	}
 
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		return nil, errors.New("JWT_SECRET not set")
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = ":8080"
@@ -36,6 +41,7 @@ func LoadEnv() (*Env, error) {
 
 	return &Env{
 		DB_URL:     dbURL,
+		JWT_SECRET: jwtSecret,
 		PORT:       port,
 		AWS_REGION: awsRegion,
 		S3_BUCKET:  s3Bucket,

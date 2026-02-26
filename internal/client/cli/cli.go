@@ -6,6 +6,7 @@ import (
 
 	"github.com/aegio22/postflow/internal/client/http"
 	"github.com/aegio22/postflow/internal/server"
+	"github.com/joho/godotenv"
 )
 
 // Command registry
@@ -115,6 +116,8 @@ func (c *Commands) getCommands() map[string]cliCommand {
 }
 
 func RunCLI() {
+	_ = godotenv.Load()
+
 	if len(os.Args) < 2 {
 		fmt.Fprint(os.Stderr, "No arguments or commands provided")
 		os.Exit(2)

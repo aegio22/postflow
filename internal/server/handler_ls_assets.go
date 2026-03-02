@@ -4,29 +4,24 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aegio22/postflow/internal/client/auth"
 	"github.com/aegio22/postflow/internal/client/models"
 	"github.com/aegio22/postflow/internal/database"
 )
 
 func (c *Config) handlerLsAssets(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	// Get authenticated user ID from context (set by middleware)
+	userId, ok := getUserID(ctx)
+	if !ok {
+		respondError(w, http.StatusInternalServerError, "authentication error")
+		return
+	}
+
 	projectName := r.URL.Query().Get("project_name")
 	if projectName == "" {
 		log.Printf("Project not found")
 		respondError(w, http.StatusBadRequest, "Project not found")
-		return
-	}
-	accessToken, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		log.Printf("error getting access token: %v", err)
-		respondError(w, http.StatusUnauthorized, "cannot fetch access token")
-		return
-	}
-	userId, err := auth.ValidateJWT(accessToken, c.Env.JWT_SECRET)
-	if err != nil {
-		log.Printf("error validating access token: %v", err)
-		respondError(w, http.StatusUnauthorized, "cannot validate access token")
 		return
 	}
 

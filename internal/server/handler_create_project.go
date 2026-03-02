@@ -5,13 +5,17 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aegio22/postflow/internal/client/auth"
 	"github.com/aegio22/postflow/internal/client/models"
 	"github.com/aegio22/postflow/internal/database"
 )
 
 func (c *Config) handlerCreateProject(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	userId, ok := getUserID(ctx)
+	if !ok {
+		respondError(w, http.StatusInternalServerError, "failed to get user from context")
+		return
+	}
 	var projInfo models.ProjectRequest
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&projInfo)
@@ -20,18 +24,7 @@ func (c *Config) handlerCreateProject(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	accessToken, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		log.Printf("error getting access token: %v", err)
-		respondError(w, http.StatusUnauthorized, "cannot fetch access token")
-		return
-	}
-	userId, err := auth.ValidateJWT(accessToken, c.Env.JWT_SECRET)
-	if err != nil {
-		log.Printf("error validating access token: %v", err)
-		respondError(w, http.StatusUnauthorized, "cannot validate access token")
-		return
-	}
+
 	project, err := c.DB.CreateProject(ctx, database.CreateProjectParams{Title: projInfo.Title, Column2: projInfo.Description, CreatedBy: userId})
 	if err != nil {
 		log.Printf("error creating project: %v", err)

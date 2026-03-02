@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aegio22/postflow/internal/client/auth"
 	"github.com/aegio22/postflow/internal/database"
 )
 
@@ -16,16 +15,10 @@ func (c *Config) handlerDeleteProject(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Project not found")
 		return
 	}
-	accessToken, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		log.Printf("error getting access token: %v", err)
-		respondError(w, http.StatusUnauthorized, "cannot fetch access token")
-		return
-	}
-	userId, err := auth.ValidateJWT(accessToken, c.Env.JWT_SECRET)
-	if err != nil {
-		log.Printf("error validating access token: %v", err)
-		respondError(w, http.StatusUnauthorized, "cannot validate access token")
+
+	userId, ok := getUserID(ctx)
+	if !ok {
+		respondError(w, http.StatusInternalServerError, "failed to get user from context")
 		return
 	}
 	project, err := c.DB.GetProjectByTitle(ctx, projectName)
@@ -55,7 +48,7 @@ func (c *Config) handlerDeleteProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-// 1. Initialize a slice of strings to hold the keys
+	// 1. Initialize a slice of strings to hold the keys
 	keys := make([]string, 0, len(assets))
 
 	// 2. Loop through the assets to collect their storage paths
@@ -72,7 +65,6 @@ func (c *Config) handlerDeleteProject(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	
 
 	err = c.DB.DeleteProjectByTitle(ctx, projectName)
 	if err != nil {

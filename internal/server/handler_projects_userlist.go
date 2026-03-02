@@ -4,42 +4,40 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aegio22/postflow/internal/client/auth"
 	"github.com/aegio22/postflow/internal/client/models"
 	"github.com/aegio22/postflow/internal/database"
 )
 
 func (c *Config) handlerProjectsUserlist(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	projectName := r.URL.Query().Get("project_name")
-	if projectName == "" {
-		log.Printf("Project not found")
-		respondError(w, http.StatusBadRequest, "Project not found")
+
+	// Get authenticated user
+	authenticatedUserID, ok := getUserID(ctx)
+	if !ok {
+		respondError(w, http.StatusInternalServerError, "authentication error")
 		return
 	}
 
-	accessToken, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		log.Printf("error getting access token: %v", err)
-		respondError(w, http.StatusUnauthorized, "cannot fetch access token")
+	projectName := r.URL.Query().Get("project_name")
+	if projectName == "" {
+		respondError(w, http.StatusBadRequest, "project_name required")
 		return
 	}
-	userId, err := auth.ValidateJWT(accessToken, c.Env.JWT_SECRET)
-	if err != nil {
-		log.Printf("error validating access token: %v", err)
-		respondError(w, http.StatusUnauthorized, "cannot validate access token")
-		return
-	}
+
+	// Fix: Actually fetch the project!
 	project, err := c.DB.GetProjectByTitle(ctx, projectName)
 	if err != nil {
-		log.Println("Project not found in database")
-		respondError(w, http.StatusBadRequest, "project not found in database")
+		respondError(w, http.StatusNotFound, "project not found")
 		return
 	}
-	_, err = c.DB.GetUserProjectRelation(ctx, database.GetUserProjectRelationParams{UserID: userId, ProjectID: project.ID})
+
+	// Security: Verify authenticated user is a member
+	_, err = c.DB.GetUserProjectRelation(ctx, database.GetUserProjectRelationParams{
+		UserID:    authenticatedUserID,
+		ProjectID: project.ID,
+	})
 	if err != nil {
-		log.Printf("error finding user project relation: %v", err)
-		respondError(w, http.StatusUnauthorized, "user is not a project member")
+		respondError(w, http.StatusForbidden, "not a member of this project")
 		return
 	}
 

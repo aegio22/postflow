@@ -16,21 +16,25 @@ func CreateServer() (*http.Server, error) {
 
 	r := cfg.NewRouter()
 
-	//initialize core endpoints and handlers
+	// Public endpoints (no auth required)
 	r.HandleFunc("POST "+routes.SignUp, cfg.handlerSignUp)
 	r.HandleFunc("POST "+routes.Login, cfg.handlerLogin)
 	r.HandleFunc("POST "+routes.Refresh, cfg.handlerRefresh)
-	r.HandleFunc("POST "+routes.Projects, cfg.handlerCreateProject)
-	r.HandleFunc("POST "+routes.ProjectMembers, cfg.handlerAddProjectMember)
-	r.HandleFunc("POST "+routes.Assets, cfg.handlerUploadAsset)
-	r.HandleFunc("GET "+routes.ViewAssets, cfg.handlerViewAsset)
-	r.HandleFunc("GET "+routes.Projects, cfg.handlerLsProjects)
-	r.HandleFunc("GET "+routes.Assets, cfg.handlerLsAssets)
-	r.HandleFunc("GET "+routes.ProjectMembers, cfg.handlerProjectsUserlist)
-	r.HandleFunc("DELETE "+routes.Projects, cfg.handlerDeleteProject)
-	r.HandleFunc("DELETE "+routes.Assets, cfg.handlerDeleteAsset)
-	r.HandleFunc("DELETE "+routes.ProjectMembers, cfg.handlerDeleteProjectMember)
-	//initialize and start server
+
+	// Protected endpoints (auth required)
+	r.HandleFunc("POST "+routes.Projects, cfg.requireAuth(cfg.handlerCreateProject))
+	r.HandleFunc("GET "+routes.Projects, cfg.requireAuth(cfg.handlerLsProjects))
+	r.HandleFunc("DELETE "+routes.Projects, cfg.requireAuth(cfg.handlerDeleteProject))
+
+	r.HandleFunc("POST "+routes.ProjectMembers, cfg.requireAuth(cfg.handlerAddProjectMember))
+	r.HandleFunc("GET "+routes.ProjectMembers, cfg.requireAuth(cfg.handlerProjectsUserlist))
+	r.HandleFunc("DELETE "+routes.ProjectMembers, cfg.requireAuth(cfg.handlerDeleteProjectMember))
+
+	r.HandleFunc("POST "+routes.Assets, cfg.requireAuth(cfg.handlerUploadAsset))
+	r.HandleFunc("GET "+routes.Assets, cfg.requireAuth(cfg.handlerLsAssets))
+	r.HandleFunc("DELETE "+routes.Assets, cfg.requireAuth(cfg.handlerDeleteAsset))
+	r.HandleFunc("GET "+routes.ViewAssets, cfg.requireAuth(cfg.handlerViewAsset))
+
 	server := &http.Server{
 		Addr:              cfg.Env.PORT,
 		Handler:           r,

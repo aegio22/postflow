@@ -17,6 +17,7 @@ type Commands struct {
 type cliCommand struct {
 	name        string
 	description string
+	arguments   []string
 	callback    func([]string) error
 }
 
@@ -26,90 +27,112 @@ type ErrorResponse struct {
 	Code    string `json:"code,omitempty"`
 }
 
-func (c *Commands) getCommands() map[string]cliCommand {
+func (c *Commands) getCommands() []cliCommand {
 	//add commands here
-	return map[string]cliCommand{
-		"register": {
+	return []cliCommand{
+		{
 			name:        "register",
 			description: "register a new user",
+			arguments:   []string{"username", "email", "password"},
 			callback:    c.SignUp,
 		},
-		"login": {
+		{
 			name:        "login",
-			description: "login with email and password",
+			description: "login to an existing account",
+			arguments:   []string{"email", "password"},
 			callback:    c.Login,
 		},
-		"help": {
+		{
 			name:        "help",
 			description: "get list of valid commands and their arguments",
 			callback:    c.Help,
 		},
-		"serve": {
+		{
 			name:        "serve",
-			description: "initialize the postflow server",
+			description: "initialize the postflow server. reads base server URL from environment variables",
 			callback:    server.Run,
 		},
-		"projects": {
-			name:        "projects",
-			description: "followed by projects subcommands",
-			callback:    c.Projects,
+		{
+			name:     "projects",
+			callback: c.Projects,
 		},
 		//not reachable from here. only in cmd registry for the help command's accuracy
-		"projects create": {
+		{
+			name:        "projects clone",
+			description: "clone a project from the database down to your local system",
+			arguments:   []string{"project title", "destination filepath"},
+			callback:    c.ProjectsClone,
+		},
+		{
+			name:        "projects push",
+			description: "push a project from your local system up to the database and cloud storage",
+			arguments:   []string{"project title", "source filepath"},
+			callback:    c.ProjectsPush,
+		},
+
+		{
 			name:        "projects create",
 			description: "create a new project",
+			arguments:   []string{"project title", "'optional description'"},
 			callback:    c.CreateProject,
 		},
-		"projects addmem": {
+		{
 			name:        "projects addmem",
-			description: "add a new project member by project title, user email, and user status (admin, staff, or viewer)",
+			description: "add a new project member. Only available to admin or staff users within the project",
+			arguments:   []string{"project title", "user email", "user status (admin, staff, or viewer)"},
 			callback:    c.AddUserToProject,
 		},
-		"projects ls": {
+		{
 			name:        "projects ls",
 			description: "list all projects the logged in user is a member of",
 			callback:    c.LsProjects,
 		},
-		"projects delete": {
+		{
 			name:        "projects delete",
-			description: "delete a project from the database by project title. Will only work if the logged in user is a project admin",
+			description: "delete a project and all corresponding files from the database. Will only work if the logged in user is a project admin. **CANNOT BE UNDONE**",
+			arguments:   []string{"project name"},
 			callback:    c.DeleteProject,
 		},
-		"projects delmem": {
+		{
 			name:        "projects delmem",
-			description: "delete a member from the given project by project title and user email",
+			description: "delete a member from the given project",
+			arguments:   []string{"project title", "user email"},
 			callback:    c.DeleteAsset,
 		},
-		"projects userlist": {
+		{
 			name:        "projects userlist",
 			description: "list all users and their statuses for a project you are a member of",
+			arguments:   []string{"project title"},
 			callback:    c.ProjectsUserlist,
 		},
 		//reachable
-		"assets": {
-			name:        "assets",
-			description: "followed by assets subcommands",
-			callback:    c.Assets,
+		{
+			name:     "assets",
+			callback: c.Assets,
 		},
 		//unreachable
-		"assets upload": {
+		{
 			name:        "assets upload",
-			description: "upload new asset to project by project title",
+			description: "upload new asset to project",
+			arguments:   []string{"project name", "asset filepath", "optional tag"},
 			callback:    c.UploadAsset,
 		},
-		"assets view": {
+		{
 			name:        "assets view",
-			description: "download an asset by project title and asset filename",
+			description: "download an asset",
+			arguments:   []string{"project title", "asset filename"},
 			callback:    c.ViewAsset,
 		},
-		"assets ls": {
+		{
 			name:        "assets ls",
-			description: "view all assets and their tags for a given project title",
+			description: "view all assets and their tags",
+			arguments:   []string{"project title"},
 			callback:    c.AssetsLs,
 		},
-		"assets delete": {
+		{
 			name:        "assets delete",
-			description: "delete an asset from storage and db via a given project title and asset filename",
+			description: "delete an asset from cloud storage and database",
+			arguments:   []string{"project title", "asset filename"},
 			callback:    c.DeleteAsset,
 		},
 	}
@@ -129,7 +152,11 @@ func RunCLI() {
 	registry := Commands{
 		httpClient: client,
 	}
-	cmd, exists := registry.getCommands()[cmdName]
+	cmdMap := make(map[string]cliCommand)
+	for _, cmd := range registry.getCommands() {
+		cmdMap[cmd.name] = cmd
+	}
+	cmd, exists := cmdMap[cmdName]
 
 	if !exists {
 		fmt.Fprint(os.Stderr, "Unknown command")

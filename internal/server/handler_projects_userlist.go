@@ -1,11 +1,11 @@
 package server
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/aegio22/postflow/internal/client/models"
 	"github.com/aegio22/postflow/internal/database"
+	"github.com/aegio22/postflow/internal/logger"
 )
 
 func (c *Config) handlerProjectsUserlist(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +43,7 @@ func (c *Config) handlerProjectsUserlist(w http.ResponseWriter, r *http.Request)
 
 	users, err := c.DB.GetAllProjectUsers(ctx, project.ID)
 	if err != nil {
-		log.Printf("error getting project users: %v", err)
+		logger.Error(ctx, "failed to get project users", err, "operation", "projects_userlist", "user_id", authenticatedUserID.String(), "project_id", project.ID.String())
 		respondError(w, http.StatusConflict, "could not get project users from database")
 		return
 	}
@@ -51,7 +51,7 @@ func (c *Config) handlerProjectsUserlist(w http.ResponseWriter, r *http.Request)
 	for _, projUser := range users {
 		userInfo, err := c.DB.GetUserByID(ctx, projUser.UserID)
 		if err != nil {
-			log.Printf("error getting user info for user %v: %v", projUser.UserID, err)
+			logger.Error(ctx, "failed to get user info", err, "operation", "projects_userlist", "user_id", authenticatedUserID.String(), "target_user_id", projUser.UserID.String())
 			respondError(w, http.StatusConflict, "Error getting user info")
 			return
 		}

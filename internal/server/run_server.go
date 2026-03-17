@@ -1,11 +1,13 @@
 package server
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 
+	"github.com/aegio22/postflow/internal/logger"
 	"github.com/aegio22/postflow/internal/storage"
 	_ "github.com/lib/pq" // Required for the postgres driver
 	"github.com/pressly/goose/v3"
@@ -17,8 +19,12 @@ func Run(args []string) error {
 		return fmt.Errorf("DATABASE_URL environment variable is required")
 	}
 
+	// Initialize logger for startup
+	log := logger.NewLogger()
+	ctx := context.Background()
+
 	// 1. Run migrations before starting the server logic
-	if err := applyMigrations(dbURL); err != nil {
+	if err := applyMigrations(ctx, log, dbURL); err != nil {
 		// We return the error so RunCLI can print it properly
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
@@ -29,7 +35,7 @@ func Run(args []string) error {
 		return fmt.Errorf("failed to create server: %w", err)
 	}
 
-	log.Printf("Starting PostFlow server on %s", server.Addr)
+	log.Info("starting server", "addr", server.Addr)
 	if err := server.ListenAndServe(); err != nil {
 		return fmt.Errorf("server crashed: %w", err)
 	}
@@ -37,7 +43,7 @@ func Run(args []string) error {
 	return nil
 }
 
-func applyMigrations(dbURL string) error {
+func applyMigrations(ctx context.Context, log *slog.Logger, dbURL string) error {
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		return err
@@ -51,12 +57,12 @@ func applyMigrations(dbURL string) error {
 		return err
 	}
 
-	log.Println("Checking database schema...")
+	log.InfoContext(ctx, "checking database schema")
 
 	if err := goose.Up(db, "sql/schema"); err != nil {
 		return err
 	}
 
-	log.Println("Database is ready.")
+	log.InfoContext(ctx, "database ready")
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/aegio22/postflow/internal/client/auth"
+	"github.com/aegio22/postflow/internal/logger"
 	"github.com/google/uuid"
 )
 
@@ -27,7 +28,9 @@ func (c *Config) requireAuth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), userIDKey, userID)
+		// Add user ID to context using logger's SetUserID so middleware can log it
+		ctx := logger.SetUserID(r.Context(), userID)
+		ctx = context.WithValue(ctx, userIDKey, userID)
 		next(w, r.WithContext(ctx))
 	}
 }

@@ -1,11 +1,11 @@
 package server
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/aegio22/postflow/internal/client/models"
 	"github.com/aegio22/postflow/internal/database"
+	"github.com/aegio22/postflow/internal/logger"
 )
 
 func (c *Config) handlerLsProjects(w http.ResponseWriter, r *http.Request) {
@@ -17,13 +17,13 @@ func (c *Config) handlerLsProjects(w http.ResponseWriter, r *http.Request) {
 	}
 	user, err := c.DB.GetUserByID(ctx, userId)
 	if err != nil {
-		log.Printf("error pulling user info from db: %v", err)
+		logger.Error(ctx, "failed to get user info", err, "operation", "ls_projects", "user_id", userId.String())
 		respondError(w, http.StatusBadRequest, "error pulling user info from db")
 		return
 	}
 	projects, err := c.DB.GetProjectsForUser(ctx, userId)
 	if err != nil {
-		log.Printf("error fetching projects from DB: %v", err)
+		logger.Error(ctx, "failed to get projects for user", err, "operation", "ls_projects", "user_id", userId.String())
 		respondError(w, http.StatusBadRequest, "could not get projects from DB for user")
 		return
 	}
@@ -31,7 +31,7 @@ func (c *Config) handlerLsProjects(w http.ResponseWriter, r *http.Request) {
 	for _, proj := range projects {
 		status, err := c.DB.GetUserProjectRelation(ctx, database.GetUserProjectRelationParams{UserID: userId, ProjectID: proj.ID})
 		if err != nil {
-			log.Printf("could not get user status for project %v", proj.Title)
+			logger.Error(ctx, "failed to get user status for project", err, "operation", "ls_projects", "user_id", userId.String(), "project_id", proj.ID.String(), "project_title", proj.Title)
 			respondError(w, http.StatusConflict, "error getting user status for project")
 			return
 		}

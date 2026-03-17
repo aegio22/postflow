@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/aegio22/postflow/internal/logger"
 	"github.com/aegio22/postflow/internal/routes"
 )
 
@@ -35,9 +36,12 @@ func CreateServer() (*http.Server, error) {
 	r.HandleFunc("DELETE "+routes.Assets, cfg.requireAuth(cfg.handlerDeleteAsset))
 	r.HandleFunc("GET "+routes.ViewAssets, cfg.requireAuth(cfg.handlerViewAsset))
 
+	// Wrap router with logging middleware
+	handler := logger.Middleware(cfg.Logger)(r)
+
 	server := &http.Server{
 		Addr:              cfg.Env.PORT,
-		Handler:           r,
+		Handler:           handler,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      10 * time.Second,
 		ReadHeaderTimeout: 10 * time.Second,

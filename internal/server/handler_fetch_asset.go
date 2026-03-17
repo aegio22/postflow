@@ -1,12 +1,12 @@
 package server
 
 import (
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/aegio22/postflow/internal/client/models"
 	"github.com/aegio22/postflow/internal/database"
+	"github.com/aegio22/postflow/internal/logger"
 )
 
 func (c *Config) handlerViewAsset(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +29,7 @@ func (c *Config) handlerViewAsset(w http.ResponseWriter, r *http.Request) {
 
 	project, err := c.DB.GetProjectByTitle(ctx, projectName)
 	if err != nil {
-		log.Printf("error getting project from title: %s", err)
+		logger.Error(ctx, "project not found", err, "operation", "view_asset", "user_id", userId.String(), "project_name", projectName)
 		respondError(w, http.StatusBadRequest, "could not get project from provided title")
 		return
 	}
@@ -38,7 +38,7 @@ func (c *Config) handlerViewAsset(w http.ResponseWriter, r *http.Request) {
 		UserID: userId, ProjectID: project.ID,
 	})
 	if err != nil {
-		log.Printf("error finding user info in project: %s", err)
+		logger.Error(ctx, "user not in project", err, "operation", "view_asset", "user_id", userId.String(), "project_id", project.ID.String())
 		respondError(w, http.StatusUnauthorized, "user not found in project")
 		return
 	}
@@ -48,7 +48,7 @@ func (c *Config) handlerViewAsset(w http.ResponseWriter, r *http.Request) {
 		ProjectID: project.ID,
 	})
 	if err != nil {
-		log.Printf("error fetching asset from the database: %v", err)
+		logger.Error(ctx, "asset not found", err, "operation", "view_asset", "user_id", userId.String(), "project_id", project.ID.String(), "asset_name", assetName)
 		respondError(w, http.StatusBadRequest, "requested asset not found in database")
 		return
 	}
@@ -57,7 +57,7 @@ func (c *Config) handlerViewAsset(w http.ResponseWriter, r *http.Request) {
 	const ttl = 15 * time.Minute
 	downloadURL, err := c.S3Client.PresignDownload(ctx, asset.StoragePath, ttl, assetName)
 	if err != nil {
-		log.Printf("failed to generate presigned download URL: %v", err)
+		logger.Error(ctx, "failed to generate presigned URL", err, "operation", "view_asset", "user_id", userId.String(), "asset_id", asset.ID.String())
 		respondError(w, http.StatusInternalServerError, "failed to generate asset URL")
 		return
 	}

@@ -1,18 +1,45 @@
-version: "3.9"
-
 services:
+  postflow-migrate:
+    image: postflow-server:latest
+    build: .
+    command: ["/app/postflow", "migrate"]
+    environment:
+      DATABASE_URL: "postgres://postflow:postflow@db:5432/postflow?sslmode=disable"
+    depends_on:
+      db:
+        condition: service_healthy
+
   postflow-server:
     image: postflow-server:latest
     build: .
     ports:
       - "8080:8080"
     environment:
-      # Postgres connection string (adjust host/user/pass/db)
-      DATABASE_URL: "postgres://user:pass@host.docker.internal:5432/postflow?sslmode=disable"
-      # AWS / S3 config
+      DATABASE_URL: "postgres://postflow:postflow@db:5432/postflow?sslmode=disable"
       AWS_REGION: "us-east-1"
       S3_BUCKET: "your-s3-bucket-name"
       AWS_ACCESS_KEY_ID: "YOUR_ACCESS_KEY_ID"
       AWS_SECRET_ACCESS_KEY: "YOUR_SECRET_ACCESS_KEY"
-      # Server port inside container (matches EXPOSE)
       PORT: ":8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      postflow-migrate:
+        condition: service_completed_successfully
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postflow
+      POSTGRES_PASSWORD: postflow
+      POSTGRES_DB: postflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

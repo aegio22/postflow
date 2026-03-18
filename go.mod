@@ -1,6 +1,6 @@
 module github.com/aegio22/postflow
 
-go 1.25.4
+go 1.26
 
 require (
 	github.com/alexedwards/argon2id v1.0.0

@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: postflow
+    static_configs:
+      - targets: ["postflow-server:8080"]

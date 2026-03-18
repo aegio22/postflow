@@ -1,14 +1,4 @@
 services:
-  postflow-migrate:
-    image: postflow-server:latest
-    build: .
-    command: ["/app/postflow", "migrate"]
-    environment:
-      DATABASE_URL: "postgres://postflow:postflow@db:5432/postflow?sslmode=disable"
-    depends_on:
-      db:
-        condition: service_healthy
-
   postflow-server:
     image: postflow-server:latest
     build: .
@@ -16,16 +6,16 @@ services:
       - "8080:8080"
     environment:
       DATABASE_URL: "postgres://postflow:postflow@db:5432/postflow?sslmode=disable"
-      AWS_REGION: "us-east-1"
-      S3_BUCKET: "your-s3-bucket-name"
-      AWS_ACCESS_KEY_ID: "YOUR_ACCESS_KEY_ID"
-      AWS_SECRET_ACCESS_KEY: "YOUR_SECRET_ACCESS_KEY"
+      BASE_URL: "http://localhost:8080"
+      JWT_SECRET: "${JWT_SECRET}"
+      AWS_REGION: "${AWS_REGION}"
+      S3_BUCKET: "${S3_BUCKET}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
       PORT: ":8080"
     depends_on:
       db:
         condition: service_healthy
-      postflow-migrate:
-        condition: service_completed_successfully
 
   db:
     image: postgres:16-alpine
@@ -41,5 +31,26 @@ services:
       timeout: 5s
       retries: 5
 
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - postflow-server
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
 volumes:
   postgres_data:
+  grafana_data:

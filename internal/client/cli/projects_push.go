@@ -4,11 +4,35 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
+
+var (
+	activeWorkers = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "postflow_active_workers",
+		Help: "Number of goroutine workers currently processing S3 transfers",
+	})
+	transferDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "postflow_transfer_duration_seconds",
+			Help:    "Duration of individual S3 upload and download operations",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"operation"},
+	)
+)
+
+func init() {
+	prometheus.MustRegister(activeWorkers)
+	prometheus.MustRegister(transferDuration)
+}
 
 type asset struct {
 	AssetName string
@@ -50,14 +74,32 @@ func (c *Commands) ProjectsPush(args []string) error {
 		go func() {
 			defer wg.Done()
 			for a := range jobs {
+				activeWorkers.Inc()
+				defer activeWorkers.Dec()
+
 				fmt.Printf("Pushing %s...\n", a.AssetName)
-				if err := c.UploadAsset([]string{projectName, a.Filepath, a.Tag}); err != nil {
+				start := time.Now()
+				err := c.UploadAsset([]string{projectName, a.Filepath, a.Tag})
+				duration := time.Since(start)
+				transferDuration.WithLabelValues("upload").Observe(duration.Seconds())
+
+				if err != nil {
+					slog.Error("S3 upload failed",
+						"operation", "upload",
+						"duration_ms", duration.Milliseconds(),
+						"asset", a.AssetName,
+						"error", err)
 					firstErrMu.Lock()
 					if firstErr == nil {
 						firstErr = err
 					}
 					firstErrMu.Unlock()
 					fmt.Printf("Upload failed for %s: %v\n", a.Filepath, err)
+				} else {
+					slog.Info("S3 upload completed",
+						"operation", "upload",
+						"duration_ms", duration.Milliseconds(),
+						"asset", a.AssetName)
 				}
 			}
 		}()

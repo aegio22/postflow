@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 func (c *Commands) ProjectsClone(args []string) error {
@@ -47,13 +49,24 @@ func (c *Commands) ProjectsClone(args []string) error {
 		go func() {
 			defer wg.Done()
 			for job := range jobs {
+				activeWorkers.Inc()
+				defer activeWorkers.Dec()
+
+				start := time.Now()
 				dl, err := c.getDownloadUrl(projectName, job.Name)
 				if err != nil {
+					duration := time.Since(start)
+					slog.Error("failed to get download URL",
+						"operation", "download",
+						"duration_ms", duration.Milliseconds(),
+						"asset", job.Name,
+						"error", err)
 					firstErrMu.Lock()
 					if firstErr == nil {
 						firstErr = err
 					}
 					firstErrMu.Unlock()
+					transferDuration.WithLabelValues("download").Observe(duration.Seconds())
 					continue
 				}
 
@@ -67,19 +80,42 @@ func (c *Commands) ProjectsClone(args []string) error {
 				fmt.Printf("Downloading %s...\n", job.Name)
 
 				resp, err := http.Get(dl.UploadURL)
+				duration := time.Since(start)
 				if err != nil {
+					slog.Error("S3 download failed",
+						"operation", "download",
+						"duration_ms", duration.Milliseconds(),
+						"asset", job.Name,
+						"error", err)
+					transferDuration.WithLabelValues("download").Observe(duration.Seconds())
 					continue
 				}
 
-				func() {
+				downloadErr := func() error {
 					defer resp.Body.Close()
 					f, err := os.Create(outPath)
 					if err != nil {
-						return
+						return err
 					}
 					defer f.Close()
-					io.Copy(f, resp.Body)
+					_, err = io.Copy(f, resp.Body)
+					return err
 				}()
+
+				transferDuration.WithLabelValues("download").Observe(time.Since(start).Seconds())
+
+				if downloadErr != nil {
+					slog.Error("failed to save downloaded file",
+						"operation", "download",
+						"duration_ms", duration.Milliseconds(),
+						"asset", job.Name,
+						"error", downloadErr)
+				} else {
+					slog.Info("S3 download completed",
+						"operation", "download",
+						"duration_ms", duration.Milliseconds(),
+						"asset", job.Name)
+				}
 			}
 		}()
 	}

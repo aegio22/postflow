@@ -14,6 +14,7 @@ import (
 
 type Config struct {
 	DB       *database.Queries
+	RawDB    *sql.DB
 	Env      *Env
 	S3Client *storage.S3Client
 	Logger   *slog.Logger
@@ -43,6 +44,7 @@ func CreateConfig() (*Config, error) {
 
 	return &Config{
 		DB:       database.New(db),
+		RawDB:    db,
 		Env:      env,
 		S3Client: s3Client,
 		Logger:   appLogger,

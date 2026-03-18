@@ -7,6 +7,7 @@ import (
 
 	"github.com/aegio22/postflow/internal/logger"
 	"github.com/aegio22/postflow/internal/routes"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func CreateServer() (*http.Server, error) {
@@ -35,6 +36,10 @@ func CreateServer() (*http.Server, error) {
 	r.HandleFunc("GET "+routes.Assets, cfg.requireAuth(cfg.handlerLsAssets))
 	r.HandleFunc("DELETE "+routes.Assets, cfg.requireAuth(cfg.handlerDeleteAsset))
 	r.HandleFunc("GET "+routes.ViewAssets, cfg.requireAuth(cfg.handlerViewAsset))
+
+	// Observability endpoints (no auth required)
+	r.HandleFunc("GET "+routes.Healthz, cfg.handlerHealthz)
+	r.Handle("GET "+routes.Metrics, promhttp.Handler())
 
 	// Wrap router with logging middleware
 	handler := logger.Middleware(cfg.Logger)(r)
